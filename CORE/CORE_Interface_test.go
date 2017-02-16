@@ -169,23 +169,22 @@ func TestAddCtx(t *testing.T){
 		panic(1) 
 	}
 	if AddCtx(ctx, int64(4)).Data.(int64) != int64(4) {
-		fmt.Println("Fail AddCtx")
+		fmt.Println("FAIL AddCtx")
 		t.Fail()
 	}
 	testing.Coverage()
 }
 
 func TestGetDate(t *testing.T){
-	fmt.Println(GetDate(time.Now()))
+	if GetDate(time.Unix(0, 0)) != "1969-12-31" {
+		fmt.Println("FAIL GetDate")
+		t.Fail()
+	}
 	testing.Coverage()
 }
 
 /*
 
-// Gets the date from a time object.
-func GetDate(t time.Time) string {
-	return t.Format("2006-01-02")
-}
 // Gets the Avatar URL
 func GetAvatarURL(userID retrievable.IntID) string {
 	return "https://storage.googleapis.com/" + GCSBucket + "/" + GetAvatarPath(int64(userID))
