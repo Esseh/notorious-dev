@@ -40,12 +40,22 @@ func TestCheckMac(t *testing.T){
 		t.Fail()
 	}
 }
-/*
-
-// Checks if a password username combination is valid. It does not ensure that it is correct or that it exists.
-func ValidLogin(username,password string) bool {
-	return password != "" && username != ""
+func TestValidLogin(t *testing.T){
+	if ValidLogin("","a"){
+		fmt.Println("FAIL ValidLogin 1")
+		t.Fail()
+	}
+	if ValidLogin("a",""){
+		fmt.Println("FAIL ValidLogin 2")
+		t.Fail()
+	}
+	if !ValidLogin("a","a"){
+		fmt.Println("FAIL ValidLogin 3")
+		t.Fail()
+	}
 }
+
+/*
 
 // Takes in country and region headers in order to generate a human readable name.
 func GetLocationName(country, region string) (string, error) {
