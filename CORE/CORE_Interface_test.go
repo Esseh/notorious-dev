@@ -1,10 +1,12 @@
 package CORE
 
 import(
+	"google.golang.org/appengine/aetest"
 	"github.com/Esseh/retrievable"
 	"encoding/base64"
 	"testing"
 	"fmt"
+	"time"
 )
 
 func TestSplitMac(t *testing.T){
@@ -159,20 +161,27 @@ func TestToInt(t *testing.T){
 	testing.Coverage()
 }
 
+func TestAddCtx(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil { 
+		fmt.Println("Problem During TestAddCtx",err)
+		panic(1) 
+	}
+	if AddCtx(ctx, int64(4)).Data.(int64) != int64(4) {
+		fmt.Println("Fail AddCtx")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+
+func TestGetDate(t *testing.T){
+	fmt.Println(GetDate(time.Now()))
+	testing.Coverage()
+}
+
 /*
 
-// Data Outputed by AddCtx?
-type ContextData struct {
-	Ctx  context.Context
-	Data interface{}
-}
-// Adds data to context?
-func AddCtx(ctx context.Context, data interface{}) *ContextData {
-	return &ContextData{
-		Ctx:  ctx,
-		Data: data,
-	}
-}
 // Gets the date from a time object.
 func GetDate(t time.Time) string {
 	return t.Format("2006-01-02")
