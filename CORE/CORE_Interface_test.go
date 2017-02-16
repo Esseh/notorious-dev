@@ -119,24 +119,19 @@ func TestDecrypt(t *testing.T){
 		fmt.Println("FAIL Decrypt 3")
 		t.Fail()
 	}
+	testing.Coverage()
+}
+
+func TestGetAvatarPath(t *testing.T){
+	if GetAvatarPath(int64(0)) != "users/0/avatar" {
+		fmt.Println("FAIL GetAvatarPath")
+		t.Fail()
+	}
+	testing.Coverage()
 }
 
 /*
 
-// Decrypts data based on a key
-func Decrypt(data string, key []byte) ([]byte, error) {
-	b, err := aes.NewCipher(key)
-	if err != nil { return nil, err }
-	strData, err := base64.StdEncoding.DecodeString(data)
-	if err != nil { return nil, err }
-	res := make([]byte, len(strData))
-	b.Decrypt(res, strData)
-	return bytes.TrimRight(res, "="), nil
-}
-// Generates the Avatar Path for a URL
-func GetAvatarPath(userID int64) string {
-	return "users/" + strconv.FormatInt(userID, 10) + "/avatar"
-}
 /// Parses markdown to produce HTML.
 func EscapeString(inp string) string {
 	data := []byte(inp)                                    // Convert to Byte
