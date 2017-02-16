@@ -8,8 +8,12 @@ import(
 	"crypto/aes"
 	"encoding/base64"
 	"time"
+	"strings"
 	"strconv"
 	"bytes"
+	"io"
+	"crypto/hmac"
+	"crypto/sha256"
 	"regexp"
 )
 
@@ -19,6 +23,10 @@ const (
 	// The domain of our website
 	DomainPath = "http://localhost:8080/"
 	MaxAvatarSize = 500
+	// Time allowed for cookie session
+	SessionTime = 7 * 24 * 60 * 60
+	// Key for HMAC encoding
+	HMAC_Key = "csci150project2016"
 )
 var (
 	// Global Template file.
@@ -28,6 +36,35 @@ var (
 	EncryptKey = []byte{33, 44, 160, 6, 124, 138, 93, 47, 177, 135, 163, 154, 42, 14, 58, 17, 85, 133, 174, 207, 255, 52, 3, 26, 145, 21, 169, 65, 106, 108, 0, 66}
 )
 
+func SplitMac(value string) (string, string) {
+	i := strings.LastIndex(value, ".")
+	if i == -1 {
+		return value, ""
+	}
+	return value[:i], value[i+1:]
+}
+
+func CheckMac(value, mac string) bool {
+	derivedMac, err := CreateHmac(value)
+	if err != nil {
+		return false
+	}
+	macData, err := base64.RawURLEncoding.DecodeString(mac)
+	if err != nil {
+		return false
+	}
+	return hmac.Equal(derivedMac, macData)
+}
+
+// Encodes HMAC value
+func CreateHmac(value string) ([]byte, error) {
+	mac := hmac.New(sha256.New, []byte(HMAC_Key))
+	_, err := io.WriteString(mac, value)
+	if err != nil {
+		return []byte{}, err
+	}
+	return mac.Sum(nil), nil
+}
 
 // Checks if a password username combination is valid. It does not ensure that it is correct or that it exists.
 func ValidLogin(username,password string) bool {
