@@ -1,63 +1,41 @@
 package CORE
+
 import(
-	"net/http"
-	"html/template"
-	"github.com/Esseh/retrievable"
-	"golang.org/x/net/context"
-	"github.com/pariz/gountries"
-	"crypto/aes"
-	"encoding/base64"
-	"time"
-	"strings"
-	"strconv"
-	"bytes"
-	"io"
-	"crypto/hmac"
-	"crypto/sha256"
-	"regexp"
+	"testing"
+	"fmt"
 )
 
-const (
-	// The bucket location for cloud storage.
-	GCSBucket  = "csci150project.appspot.com"
-	// The domain of our website
-	DomainPath = "http://localhost:8080/"
-	MaxAvatarSize = 500
-	// Time allowed for cookie session
-	SessionTime = 7 * 24 * 60 * 60
-	// Key for HMAC encoding
-	HMAC_Key = "csci150project2016"
-)
-var (
-	// Global Template file.
-	TPL *template.Template
-	// This key needs to be exactly 32 bytes long
-	// TODO This should not be in our git repo
-	EncryptKey = []byte{33, 44, 160, 6, 124, 138, 93, 47, 177, 135, 163, 154, 42, 14, 58, 17, 85, 133, 174, 207, 255, 52, 3, 26, 145, 21, 169, 65, 106, 108, 0, 66}
-)
-
-func SplitMac(value string) (string, string) {
-	i := strings.LastIndex(value, ".")
-	if i == -1 {
-		return value, ""
+func TestSplitMac(t *testing.T){
+	v1, v2 := SplitMac("t")
+	if v1 != "t" || v2 != "" {
+		fmt.Println("FAIL SplitMac 1")
+		t.Fail()
 	}
-	return value[:i], value[i+1:]
+	v1, v2  = SplitMac("t.t")
+	if v1 != "t" || v2 != "t"{
+		fmt.Println("FAIL SplitMac 2")
+		t.Fail()
+	}
+	testing.Coverage()
 }
+func TestCheckMac(t *testing.T){
+	
+}
+func TestCreateHmac(t *testing.T){
+	if string(CreateHmac("hello")) != string([]byte{0x2a,0x0a,0x47,0x5e,0x3b,0xd2,0x79,0x5e,0x9f,0x01,0xfa,0x4a,0xce,0x1c,0xab,0x0a,0x41,0xfb,0x09,0xf3,0x8c,0x57,0xed,0x1f,0x14,0xca,0xf8,0xc6,0xf5,0x16,0x1f,0xe0}) {
+		fmt.Println("FAIL CreateHmac")
+		t.Fail()	
+	}
+	testing.Coverage()
+}
+
+/*
 
 func CheckMac(value, mac string) bool {
 	derivedMac := CreateHmac(value)
 	macData, err := base64.RawURLEncoding.DecodeString(mac)
-	if err != nil {
-		return false
-	}
+	if err != nil { return false }
 	return hmac.Equal(derivedMac, macData)
-}
-
-// Encodes HMAC value
-func CreateHmac(value string) ([]byte) {
-	mac := hmac.New(sha256.New, []byte(HMAC_Key))
-	io.WriteString(mac, value)
-	return mac.Sum(nil)
 }
 
 // Checks if a password username combination is valid. It does not ensure that it is correct or that it exists.
@@ -177,3 +155,4 @@ func DayFromTime(t time.Time) int {
 func ServeTemplateWithParams(res http.ResponseWriter, templateName string, params interface{}) error {
 	return TPL.ExecuteTemplate(res, templateName, &params)
 }
+*/
