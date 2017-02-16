@@ -2,7 +2,7 @@ package CLOUD
 
 import (
 	"io"
-
+	"github.com/Esseh/notorious-dev/CORE"
 	"google.golang.org/appengine/log"
 
 	"cloud.google.com/go/storage"
@@ -10,7 +10,7 @@ import (
 )
 
 // Adds a file to the cloud.
-func CLOUD_AddFile(ctx context.Context, filename, contentType string, freader io.Reader) error {
+func AddFile(ctx context.Context, filename, contentType string, freader io.Reader) error {
 	client, clientErr := storage.NewClient(ctx)
 	log.Infof(ctx, "storage.newclient error: ", clientErr)
 	if clientErr != nil {
@@ -33,9 +33,9 @@ func CLOUD_AddFile(ctx context.Context, filename, contentType string, freader io
 }
 
 // Removes a file from the cloud.
-func CLOUD_RemoveFile(ctx context.Context, filename string) error {
+func RemoveFile(ctx context.Context, filename string) error {
 	client, clientErr := storage.NewClient(ctx)
 	if clientErr != nil { return clientErr }
 	defer client.Close()
-	return client.Bucket(gcsBucket).Object(filename).Delete(ctx)
+	return client.Bucket(CORE.GCSBucket).Object(filename).Delete(ctx)
 }
