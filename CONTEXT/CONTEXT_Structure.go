@@ -1,4 +1,4 @@
-package CORE
+package CONTEXT
 import (
 	"strings"
 	"net/http"
