@@ -130,17 +130,20 @@ func TestGetAvatarPath(t *testing.T){
 	testing.Coverage()
 }
 
+func TestEscapeString(t *testing.T){
+	if EscapeString("<ScRiPt>") != "<&#115;&#99;&#114;&#105;&#112;&#116;>" {
+		fmt.Println("FAIL EscapeString 1")
+		t.Fail()
+	}
+	if EscapeString("<iFrAmE>") != "<&#105;&#102;&#114;&#97;&#109;&#101;>" {
+		fmt.Println("FAIL EscapeString 2")	
+		t.Fail()
+	}
+}
+
+
 /*
 
-/// Parses markdown to produce HTML.
-func EscapeString(inp string) string {
-	data := []byte(inp)                                    // Convert to Byte
-	regex, _ := regexp.Compile("[sS][cC][rR][iI][pP][tT]") // Escape Script Tag
-	data = regex.ReplaceAll(data, []byte("&#115;&#99;&#114;&#105;&#112;&#116;"))
-	regex2, _ := regexp.Compile("[iI][fF][rR][aA][mM][eE]") // Escape Iframe Tag
-	data = regex2.ReplaceAll(data, []byte("&#105;&#102;&#114;&#97;&#109;&#101;"))
-	return string(data)
-}
 // Increments a string integer
 func Inc(inp string) string {
 	i, _ := strconv.ParseInt(inp, 10, 64)
