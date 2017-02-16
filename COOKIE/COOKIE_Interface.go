@@ -17,10 +17,7 @@ func Delete(res http.ResponseWriter, name string) {
 
 // Initializes a cookie into the current session.
 func Make(res http.ResponseWriter, name, value string) error {
-	mac, err := CORE.CreateHmac(value)
-	if err != nil {
-		return err
-	}
+	mac := CORE.CreateHmac(value)
 	c := &http.Cookie{
 		Name:     name,
 		Value:    value + "." + base64.RawURLEncoding.EncodeToString(mac),
