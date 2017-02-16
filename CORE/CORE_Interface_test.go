@@ -1,25 +1,25 @@
 package CORE
 
 import(
+	"encoding/base64"
 	"testing"
 	"fmt"
 )
 
 func TestSplitMac(t *testing.T){
+	// if i == -1 { code path
 	v1, v2 := SplitMac("t")
 	if v1 != "t" || v2 != "" {
 		fmt.Println("FAIL SplitMac 1")
 		t.Fail()
 	}
+	// normal code path
 	v1, v2  = SplitMac("t.t")
 	if v1 != "t" || v2 != "t"{
 		fmt.Println("FAIL SplitMac 2")
 		t.Fail()
 	}
 	testing.Coverage()
-}
-func TestCheckMac(t *testing.T){
-	
 }
 func TestCreateHmac(t *testing.T){
 	if string(CreateHmac("hello")) != string([]byte{0x2a,0x0a,0x47,0x5e,0x3b,0xd2,0x79,0x5e,0x9f,0x01,0xfa,0x4a,0xce,0x1c,0xab,0x0a,0x41,0xfb,0x09,0xf3,0x8c,0x57,0xed,0x1f,0x14,0xca,0xf8,0xc6,0xf5,0x16,0x1f,0xe0}) {
@@ -28,15 +28,19 @@ func TestCreateHmac(t *testing.T){
 	}
 	testing.Coverage()
 }
-
-/*
-
-func CheckMac(value, mac string) bool {
-	derivedMac := CreateHmac(value)
-	macData, err := base64.RawURLEncoding.DecodeString(mac)
-	if err != nil { return false }
-	return hmac.Equal(derivedMac, macData)
+func TestCheckMac(t *testing.T){
+	// normal code path
+	if !CheckMac("hello",base64.RawURLEncoding.EncodeToString(CreateHmac("hello"))){
+		fmt.Println("FAIL CheckMac 1")
+		t.Fail()
+	}
+	// if err != nil code path
+	if CheckMac("hel lo","hel lo"){
+		fmt.Println("FAIL CheckMac 2")
+		t.Fail()
+	}
 }
+/*
 
 // Checks if a password username combination is valid. It does not ensure that it is correct or that it exists.
 func ValidLogin(username,password string) bool {
