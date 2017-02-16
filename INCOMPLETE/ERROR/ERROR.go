@@ -26,7 +26,6 @@ var (
 	ERROR_MustOwnNotes            = errors.New("User does not own note")
 	ERROR_MustOwnUpload           = errors.New("User does not own upload")
 	ERROR_MustOwnItem             = errors.New("User does not own item")
-	ERROR_NotMatchingHMac         = errors.New("Hmac checking failed")
 	ERROR_NoItemToDelete          = errors.New("Must specify item to delete")
 	ERROR_ItemDoesNotExist        = errors.New("Item does not exist")
 )
