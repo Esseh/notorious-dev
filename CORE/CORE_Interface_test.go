@@ -55,19 +55,27 @@ func TestValidLogin(t *testing.T){
 	}
 }
 
+func TestGetLocationName(t *testing.T){
+	// if err != nil codepath
+	if _, err := GetLocationName("nonexistant-country","nonexistant-region"); err == nil {
+		fmt.Println("FAIL GetLocationName 1")
+		t.Fail()
+	}
+	// r.Code == region codepath
+	if s, _ := GetLocationName("US","CA"); s != "California, United States"{
+		fmt.Println("FAIL GetLocationName 2")
+		t.Fail()
+	}
+	// normal codepath
+	if s, _ := GetLocationName("US",""); s != "United States" {
+		fmt.Println("FAIL GetLocationName 3")
+		t.Fail()
+	}
+}
+
 /*
 
 // Takes in country and region headers in order to generate a human readable name.
-func GetLocationName(country, region string) (string, error) {
-	c, err := gountries.New().FindCountryByAlpha(country)
-	if err != nil { return "", err }
-	for _, r := range c.SubDivisions() {
-		if r.Code == region {
-			return r.Name + ", " + c.Name.BaseLang.Common, nil
-		}
-	}
-	return c.Name.BaseLang.Common, nil
-}
 
 // Encrypts data based on a key
 func Encrypt(data []byte, key []byte) (string, error) {
