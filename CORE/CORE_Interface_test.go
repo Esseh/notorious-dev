@@ -191,12 +191,30 @@ func TestGetAvatarURL(t *testing.T){
 	testing.Coverage()
 }
 
+func TestYearFromTime(t *testing.T){
+	if YearFromTime(time.Unix(0, 0)) != 1969 {
+		fmt.Println("FAIL GetDate")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+func TestMonthFromTime(t *testing.T){
+	if MonthFromTime(time.Unix(0, 0)).String() != "December" {
+		fmt.Println("FAIL GetDate")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+func TestDayFromTime(t *testing.T){
+	if DayFromTime(time.Unix(0, 0)) != 31 {
+		fmt.Println("FAIL GetDate")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+
 /*
 
-// Gets the Avatar URL
-func GetAvatarURL(userID retrievable.IntID) string {
-	return "https://storage.googleapis.com/" + GCSBucket + "/" + GetAvatarPath(int64(userID))
-}
 //gets the Year from a submitted time.Time
 func YearFromTime(t time.Time) int {
 	return t.Year()
