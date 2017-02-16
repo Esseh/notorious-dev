@@ -183,6 +183,14 @@ func TestGetDate(t *testing.T){
 	testing.Coverage()
 }
 
+func TestGetAvatarURL(t *testing.T){
+	if GetAvatarURL(retrievable.IntID(int64(0))) != "https://storage.googleapis.com/" + GCSBucket + "/" + "users/0/avatar" {
+		fmt.Println("FAIL GetAvatarURL")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+
 /*
 
 // Gets the Avatar URL
