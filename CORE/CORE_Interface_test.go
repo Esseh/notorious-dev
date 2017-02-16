@@ -139,8 +139,15 @@ func TestEscapeString(t *testing.T){
 		fmt.Println("FAIL EscapeString 2")	
 		t.Fail()
 	}
+	testing.Coverage()
 }
 
+func TestInc(t *testing.T){
+	if Inc("1") != "2" {
+		fmt.Println("FAIL Inc")
+	}
+	testing.Coverage()
+}
 
 /*
 
