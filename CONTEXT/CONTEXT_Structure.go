@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"golang.org/x/net/context"
+	"github.com/Esseh/notorious-dev/PATHS"
 	"github.com/Esseh/notorious-dev/CORE"
 	"github.com/Esseh/notorious-dev/USERS"
 	"google.golang.org/appengine"
@@ -50,7 +51,7 @@ type Context struct {
 func (ctx Context)AssertLoggedInFailed() bool {
 	if ctx.userException != nil {
 		path := strings.Replace(ctx.req.URL.Path[1:], "%2f", "/", -1)
-		http.Redirect(ctx.res, ctx.req, PATH_AUTH_Login+"?redirect="+path, http.StatusSeeOther)
+		http.Redirect(ctx.res, ctx.req, PATHS.AUTH_Login+"?redirect="+path, http.StatusSeeOther)
 		return true
 	}
 	return false
