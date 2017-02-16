@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	
+	"time"
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/USERS"
 	"github.com/Esseh/notorious-dev/COOKIE"
+	"github.com/Esseh/notorious-dev/CORE"
 	"github.com/Esseh/notorious-dev/CONTEXT"
 	"github.com/mssola/user_agent"
 	"golang.org/x/crypto/bcrypt"
@@ -54,13 +55,13 @@ func CreateUserFromLogin(ctx CONTEXT.Context, email, password string, u *USERS.U
 
 // Initializes a new AUTH_Session and returns the ID of that AUTH_Session.
 func CreateSessionID(ctx CONTEXT.Context, userID int64) (sessionID int64, _ error) {
-	agent := user_agent.New(ctx.req.Header.Get("user-agent"))
+	agent := user_agent.New(ctx.Req.Header.Get("user-agent"))
 	browse, vers := agent.Browser()
-	ip, _, err := net.SplitHostPort(ctx.req.RemoteAddr)
-	if err != nil { ip = ctx.req.RemoteAddr }
-	country := ctx.req.Header.Get("X-AppEngine-Country")
-	region := ctx.req.Header.Get("X-AppEngine-Region")
-	city := ctx.req.Header.Get("X-AppEngine-City")
+	ip, _, err := net.SplitHostPort(ctx.Req.RemoteAddr)
+	if err != nil { ip = ctx.Req.RemoteAddr }
+	country := ctx.Req.Header.Get("X-AppEngine-Country")
+	region := ctx.Req.Header.Get("X-AppEngine-Region")
+	city := ctx.Req.Header.Get("X-AppEngine-City")
 	location, err := CORE.GetLocationName(country, strings.ToUpper(region))
 	if err != nil {
 		location = "Unknown"
@@ -86,18 +87,18 @@ func LoginToWebsite(ctx CONTEXT.Context,username,password string) (string, error
 	if err != nil { return "Login Information Is Incorrect", err }
 	sessionID, err := CreateSessionID(ctx, userID)
 	if err != nil { return "Login error, try again later.", err }
-	err = COOKIE.Make(ctx.res, "session", strconv.FormatInt(sessionID, 10))
+	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessionID, 10))
 	return "Login error, try again later.",err
 }
 
 // Makes the currently active user log out.
 func LogoutFromWebsite(ctx CONTEXT.Context)(string, error){
-	sessionIDStr, err := COOKIE.GetValue(ctx.req, "session")
+	sessionIDStr, err := COOKIE.GetValue(ctx.Req, "session")
 	if err != nil { return "Must be logged in", err }
 	sessionVal, err := strconv.ParseInt(sessionIDStr, 10, 0)	
 	if err != nil { return "Bad cookie value", err }
 	err = retrievable.DeleteEntity(ctx, (&USERS.Session{}).Key(ctx, sessionVal))
-	if err == nil { COOKIE.Delete(ctx.res, "session") }
+	if err == nil { COOKIE.Delete(ctx.Res, "session") }
 	return "No such session found!", err
 }
 
@@ -121,30 +122,29 @@ func RegisterNewUser(ctx CONTEXT.Context, username, password, confirmPassword, f
 
 // Logs the user in with an OAuth id.
 func OAuthLogin(req *http.Request, res http.ResponseWriter, id, first, last, redirect string) {
-	err := LoginFromOauth(res, req, id)
+	ctx := CONTEXT.NewContext(res, req)
+	err := LoginFromOauth(ctx, id)
 	if err == errors.New("There is no existing user.") {
-		RegisterFromOauth(res, req, id, first, last)
+		RegisterFromOauth(ctx, id, first, last)
 	}
 	redirect = strings.Replace(redirect, "%2f", "/", -1)
 	http.Redirect(res, req, "/"+redirect, http.StatusSeeOther)
 }
 
 // Logins using OAuth
-func LoginFromOauth(res http.ResponseWriter, req *http.Request, email string) error {
-	ctx := NewCONTEXT.Context(res,req)
+func LoginFromOauth(ctx CONTEXT.Context, email string) error {
 	l := LoginOauthAccount{}
 	err := retrievable.GetEntity(ctx, email, &l)
 	if err != nil { return errors.New("There is no existing user.") }
 	sessID, err := CreateSessionID(ctx, l.UserID)
 	if err != nil { return err }
-	err = COOKIE.Make(res, "session", strconv.FormatInt(sessID, 10))
+	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessID, 10))
 	if err != nil { return err }
 	return nil
 }
 
 // Registers using OAuth
-func RegisterFromOauth(res http.ResponseWriter, req *http.Request, email, first, last string) error {
-	ctx := NewCONTEXT.Context(res,req)
+func RegisterFromOauth(ctx CONTEXT.Context, email, first, last string) error {
 	checkLogin := LoginOauthAccount{}
 
 	// Check that user does not exist
@@ -162,7 +162,7 @@ func RegisterFromOauth(res http.ResponseWriter, req *http.Request, email, first,
 	if putErr != nil { return putErr }
 	sessID, err := CreateSessionID(ctx, lkey.IntID())
 	if err != nil { return err }
-	err = COOKIE.Make(res, "session", strconv.FormatInt(sessID, 10))
+	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessID, 10))
 	if err != nil { return err }
 	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/Esseh/retrievable"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
+	"github.com/Esseh/notorious-dev/CORE"
 )
 
 const (
@@ -45,7 +46,7 @@ func (l *LoginLocalAccount) Place(ctx context.Context, key interface{}) (*datast
 }
 
 func (l *LoginLocalAccount) Key(ctx context.Context, key interface{}) *datastore.Key {
-	e, _ := CORE.Encrypt([]byte(key.(string)), encryptKey)
+	e, _ := CORE.Encrypt([]byte(key.(string)), CORE.EncryptKey)
 	return datastore.NewKey(ctx, LoginTable, e, 0, nil)
 }
 
