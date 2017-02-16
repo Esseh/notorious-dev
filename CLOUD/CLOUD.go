@@ -17,7 +17,7 @@ func AddFile(ctx context.Context, filename, contentType string, freader io.Reade
 		return clientErr
 	}
 	defer client.Close()
-	csWriter := client.Bucket("csci150project.appspot.com").Object(filename).NewWriter(ctx)
+	csWriter := client.Bucket(CORE.GCSBucket).Object(filename).NewWriter(ctx)
 	// Cloud Storage Writer - Permissions
 	csWriter.ACL = []storage.ACLRule{
 		{storage.AllUsers, storage.RoleReader},
