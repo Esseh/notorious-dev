@@ -1,6 +1,7 @@
 package CORE
 
 import(
+	"github.com/Esseh/retrievable"
 	"encoding/base64"
 	"testing"
 	"fmt"
@@ -145,35 +146,21 @@ func TestEscapeString(t *testing.T){
 func TestInc(t *testing.T){
 	if Inc("1") != "2" {
 		fmt.Println("FAIL Inc")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+
+func TestToInt(t *testing.T){
+	if ToInt(retrievable.IntID(int64(0))) != int64(0) {
+		fmt.Println("Fail ToInt")
+		t.Fail()
 	}
 	testing.Coverage()
 }
 
 /*
 
-// Increments a string integer
-func Inc(inp string) string {
-	i, _ := strconv.ParseInt(inp, 10, 64)
-	return strconv.FormatInt(i+1, 10)
-}
-//Finds corresponding SVG template
-func FindSVG(name string) (ret template.HTML, err error) {
-	buf := bytes.NewBuffer([]byte{})
-	err = TPL.ExecuteTemplate(buf, ("svg-" + name), nil)
-	ret = template.HTML(buf.String())
-	return
-}
-//Finds corresponding template
-func FindTemplate(name string) (ret template.HTML, err error) {
-	buf := bytes.NewBuffer([]byte{})
-	err = TPL.ExecuteTemplate(buf, (name), nil)
-	ret = template.HTML(buf.String())
-	return
-}
-// Converts retrievable integer type to int64
-func ToInt(id retrievable.IntID) int64 {
-	return int64(id)
-}
 // Data Outputed by AddCtx?
 type ContextData struct {
 	Ctx  context.Context
@@ -206,6 +193,22 @@ func MonthFromTime(t time.Time) time.Month {
 func DayFromTime(t time.Time) int {
 	return t.Day()
 }
+
+//Finds corresponding SVG template
+func FindSVG(name string) (ret template.HTML, err error) {
+	buf := bytes.NewBuffer([]byte{})
+	err = TPL.ExecuteTemplate(buf, ("svg-" + name), nil)
+	ret = template.HTML(buf.String())
+	return
+}
+//Finds corresponding template
+func FindTemplate(name string) (ret template.HTML, err error) {
+	buf := bytes.NewBuffer([]byte{})
+	err = TPL.ExecuteTemplate(buf, (name), nil)
+	ret = template.HTML(buf.String())
+	return
+}
+
 //Exactly What it Says on the Tin
 func ServeTemplateWithParams(res http.ResponseWriter, templateName string, params interface{}) error {
 	return TPL.ExecuteTemplate(res, templateName, &params)
