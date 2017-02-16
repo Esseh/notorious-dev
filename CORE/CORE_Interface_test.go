@@ -1,6 +1,8 @@
 package CORE
 
 import(
+	"html/template"
+	"net/http/httptest"
 	"google.golang.org/appengine/aetest"
 	"github.com/Esseh/retrievable"
 	"encoding/base64"
@@ -213,38 +215,20 @@ func TestDayFromTime(t *testing.T){
 	testing.Coverage()
 }
 
-/*
-
-//gets the Year from a submitted time.Time
-func YearFromTime(t time.Time) int {
-	return t.Year()
+func TestTemplates(t *testing.T){
+	TPL = template.New("")
+	TPL = template.Must(TPL.ParseGlob("../templates/*"))
+	if _, err := FindSVG("t"); err != nil {
+		fmt.Println("FAIL Template 1")
+		t.Fail()
+	}
+	if _, err := FindTemplate("t"); err != nil {
+		fmt.Println("FAIL Template 2")	
+		t.Fail()
+	}
+	if err := ServeTemplateWithParams(httptest.NewRecorder(), "t", nil); err != nil {
+		fmt.Println("FAIL Template 3")
+		t.Fail()
+	}
+	testing.Coverage()
 }
-//gets the Month from a submitted time.Time
-func MonthFromTime(t time.Time) time.Month {
-	return t.Month()
-}
-//gets the Day from a submitted time.Time
-func DayFromTime(t time.Time) int {
-	return t.Day()
-}
-
-//Finds corresponding SVG template
-func FindSVG(name string) (ret template.HTML, err error) {
-	buf := bytes.NewBuffer([]byte{})
-	err = TPL.ExecuteTemplate(buf, ("svg-" + name), nil)
-	ret = template.HTML(buf.String())
-	return
-}
-//Finds corresponding template
-func FindTemplate(name string) (ret template.HTML, err error) {
-	buf := bytes.NewBuffer([]byte{})
-	err = TPL.ExecuteTemplate(buf, (name), nil)
-	ret = template.HTML(buf.String())
-	return
-}
-
-//Exactly What it Says on the Tin
-func ServeTemplateWithParams(res http.ResponseWriter, templateName string, params interface{}) error {
-	return TPL.ExecuteTemplate(res, templateName, &params)
-}
-*/
