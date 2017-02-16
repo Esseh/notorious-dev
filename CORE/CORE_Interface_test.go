@@ -39,6 +39,7 @@ func TestCheckMac(t *testing.T){
 		fmt.Println("FAIL CheckMac 2")
 		t.Fail()
 	}
+	testing.Coverage()
 }
 func TestValidLogin(t *testing.T){
 	if ValidLogin("","a"){
@@ -53,6 +54,7 @@ func TestValidLogin(t *testing.T){
 		fmt.Println("FAIL ValidLogin 3")
 		t.Fail()
 	}
+	testing.Coverage()
 }
 
 func TestGetLocationName(t *testing.T){
@@ -71,36 +73,62 @@ func TestGetLocationName(t *testing.T){
 		fmt.Println("FAIL GetLocationName 3")
 		t.Fail()
 	}
+	testing.Coverage()
+}
+
+func TestEncrypt(t *testing.T){
+	// err != nil codepath
+	if _, err := Encrypt([]byte("hello"), []byte{1,2,3}); err == nil {
+		fmt.Println("FAIL Encrypt 1")
+		t.Fail()
+	}
+	// for len(data) < b.Blocksize codepath
+	s1, _ := Encrypt([]byte("hoi"), EncryptKey)
+	s2, _ := Decrypt(s1,EncryptKey)
+	
+	if "hoi" != string(s2) {
+		fmt.Println("FAIL Encrypt 2")
+		t.Fail()
+	}
+	// normal code path
+	s3, _ := Encrypt([]byte("hoiiiiiiiiiiiiii"), EncryptKey)
+	s4, _ := Decrypt(s3,EncryptKey)
+	if "hoiiiiiiiiiiiiii" != string(s4) {
+		fmt.Println(string(s4))
+		fmt.Println("FAIL Encrypt 3")
+		t.Fail()
+	}
+	testing.Coverage()
+}
+
+func TestDecrypt(t *testing.T){
+	// err != nil	1
+	if _, err := Decrypt("",[]byte{1,2,3}); err == nil {
+		fmt.Println("FAIL Decrypt 1")
+		t.Fail()
+	}
+	// err != nil	2
+	if _, err := Decrypt("122312[p[[p",EncryptKey); err == nil {
+		fmt.Println("FAIL Decrypt 2")
+		t.Fail()
+	}
+	// normal path
+	s1, _ := Encrypt([]byte("hoi"), EncryptKey)
+	s2, _ := Decrypt(s1,EncryptKey)
+	if "hoi" != string(s2) {
+		fmt.Println("FAIL Decrypt 3")
+		t.Fail()
+	}
 }
 
 /*
 
-// Takes in country and region headers in order to generate a human readable name.
-
-// Encrypts data based on a key
-func Encrypt(data []byte, key []byte) (string, error) {
-	b, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-	for len(data) < b.BlockSize() {
-		data = append(data, '=')
-	}
-	res := make([]byte, len(data))
-	b.Encrypt(res, data)
-	finalValue := base64.StdEncoding.EncodeToString(res)
-	return finalValue, nil
-}
 // Decrypts data based on a key
 func Decrypt(data string, key []byte) ([]byte, error) {
 	b, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 	strData, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, err
-	}
+	if err != nil { return nil, err }
 	res := make([]byte, len(strData))
 	b.Decrypt(res, strData)
 	return bytes.TrimRight(res, "="), nil
