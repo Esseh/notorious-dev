@@ -2,6 +2,7 @@
 package USERS
 
 import (
+	"time"
 	"encoding/json"
 	"github.com/Esseh/notorious-dev/CORE"
 	"github.com/Esseh/retrievable"
@@ -12,6 +13,7 @@ import (
 var (
 	UsersTable          = "Users"
 	RecentlyViewedTable = "RecentlyViewedCourses"
+	SessionTable       = "Session"
 )
 
 type (
@@ -83,3 +85,26 @@ func (u *User) Unserialize(data []byte) error {
 	return u.fromEncrypt(e)
 }
 
+
+
+// Contains session information from an individual login instance.
+type Session struct {
+	// Key for USER_User
+	UserID       int64
+	// Key for local instance of this object
+	ID           int64  `datastore:"-"`
+	// IP Address at point of login.
+	IP           string `datastore:",noindex"`
+	// Browser Information at point of login.
+	BrowserUsed  string `datastore:",noindex"`
+	// Physical Location at point of login.
+	LocationUsed string `datastore:",noindex"`
+	// Time that the session was created.
+	LastUsed     time.Time
+}
+
+func (s *Session) Key(ctx context.Context, key interface{}) *datastore.Key {
+	return datastore.NewKey(ctx, SessionTable, "", key.(int64), nil)
+}
+
+func (s *Session) StoreKey(key *datastore.Key) { s.ID = key.IntID() }

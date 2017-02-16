@@ -83,56 +83,6 @@ func AUTH_CreateSessionID(ctx Context, userID int64) (sessionID int64, _ error) 
 	return rk.IntID(), err
 }
 
-// Retrieves a AUTH_User ID from a AUTH_Session ID
-func AUTH_GetUserIDFromSession(ctx context.Context, sessionID int64) (userID int64, _ error) {
-	sessionData, err := AUTH_GetSession(ctx, sessionID)
-	if err != nil { return 0, err }
-	return sessionData.UserID, nil
-}
-
-// Retrieves an AUTH_Session from its respective ID.
-func AUTH_GetSession(ctx context.Context, sessionID int64) (AUTH_Session, error) {
-	s := AUTH_Session{}
-	getErr := retrievable.GetEntity(ctx, sessionID, &s) // Get actual session from datastore
-	if getErr != nil { return AUTH_Session{}, ERROR_NotLoggedIn }
-	s.LastUsed = time.Now()
-	if _, err := retrievable.PlaceEntity(ctx, sessionID, &s); err != nil { return AUTH_Session{}, err }
-	return s, nil
-}
-
-// Retrieves an AUTH_Session ID from the currently logged in user.
-func AUTH_GetSessionID(req *http.Request) (int64, error) {
-	sessionIDStr, err := COOKIE_GetValue(req, "session")
-	if err != nil { return -1, ERROR_NotLoggedIn }
-	id, err := strconv.ParseInt(sessionIDStr, 10, 64) // Change cookie val into key
-	if err != nil { return -1, ERROR_InvalidLogin }
-	return id, nil
-}
-
-// Retrieves an AUTH_User from the currently logged in user.
-func AUTH_GetUserFromSession(req *http.Request) (*USER_User, error) {
-	userID, err := AUTH_GetUserIDFromRequest(req)
-	if err != nil { return &USER_User{}, err }
-	ctx := appengine.NewContext(req)
-	return AUTH_GetUserFromID(ctx, userID)
-}
-
-// Retrieves an AUTH_User ID from the currently logged in user.
-func AUTH_GetUserIDFromRequest(req *http.Request) (int64, error) {
-	s, err := AUTH_GetSessionID(req)
-	if err != nil { return 0, err }
-	ctx := appengine.NewContext(req)
-	userID, err := AUTH_GetUserIDFromSession(ctx, s)
-	if err != nil { return 0, err }
-	return userID, nil
-}
-
-// Retireves an AUTH_User from it's respective ID.
-func AUTH_GetUserFromID(ctx context.Context, userID int64) (*USER_User, error) {
-	u := &USER_User{}
-	getErr := retrievable.GetEntity(ctx, retrievable.IntID(userID), u)
-	return u, getErr
-}
 
 // Makes the currently active user log in with username and password information.
 func AUTH_LoginToWebsite(ctx Context,username,password string) (string, error) {
