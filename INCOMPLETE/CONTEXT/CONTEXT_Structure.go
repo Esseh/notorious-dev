@@ -2,13 +2,25 @@ package CORE
 import (
 	"strings"
 	"net/http"
+	"net/url"
 	"golang.org/x/net/context"
+	"github.com/Esseh/notorious-dev/CORE"
 	"github.com/Esseh/notorious-dev/USERS"
 	"google.golang.org/appengine"
 )
+
+// Header Data,
+// Present in most template executions. (Unless it's an internal it should be assumed to be used.)
+// Placed here to minimize cross-dependencies.
+type HeaderData struct {
+	Ctx          context.Context
+	User         *USERS.User
+	CurrentPath  string
+}
+
 // Constructs an instance of Context
 func NewContext(res http.ResponseWriter, req *http.Request) Context{
-	user, err := AUTH_GetUserFromSession(req)
+	user, err := USERS.GetUserFromSession(req)
 	ctx := Context { 
 		req: req,
 		res: res,
@@ -53,11 +65,10 @@ func (ctx Context)Redirect(uri string){ http.Redirect(ctx.res, ctx.req, uri, htt
 ////  True: Parent should cease execution, error has been found.
 ////  False: No Error, Parent may ignore this function.
 /// Usage: Use if there is no constructive alternative.
-func (ctx context)ErrorPage(ErrorTitle string, e error, errCode int) bool {
+func (ctx Context)ErrorPage(ErrorTitle string, e error, errCode int) bool {
 	if e != nil {
-		log.Errorf(ctx, "%s ---- %v\n", ErrorTitle, e)
 		if ctx.user == nil {
-			ctx.user = &USER_User{}
+			ctx.user = &USERS.User{}
 		}
 		args := &struct {
 			Header    HeaderData
@@ -68,7 +79,7 @@ func (ctx context)ErrorPage(ErrorTitle string, e error, errCode int) bool {
 			HeaderData{ctx, ctx.user, ""}, ErrorTitle, e, errCode,
 		}
 		ctx.res.WriteHeader(errCode)
-		ServeTemplateWithParams(ctx.res, "site-error", args)
+		CORE.ServeTemplateWithParams(ctx.res, "site-error", args)
 		return true
 	}
 	return false
@@ -79,7 +90,7 @@ func (ctx context)ErrorPage(ErrorTitle string, e error, errCode int) bool {
 ////  True: Parent should cease execution, error has been found.
 ////  False: No Error, Parent may ignore this function.
 /// Usage: Use in POST calls accessed from a GET of the same handle.
-func (ctx context)BackWithError(err error, errorString string) bool {
+func (ctx Context)BackWithError(err error, errorString string) bool {
 	if err != nil {
 		path := strings.Replace(ctx.req.URL.Path, "%2f", "/", -1)
 		path += "?"+url.QueryEscape("ErrorResponse")+"="+url.QueryEscape(errorString)

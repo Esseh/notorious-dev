@@ -40,14 +40,6 @@ func init() {
 
 }
 
-// Header Data,
-// Present in most template executions. (Unless it's an internal it should be assumed to be used.)
-type HeaderData struct {
-	Ctx          context.Context
-	User         *USER_User
-	CurrentPath  string
-}
-
 // Constructs the header.
 // As the header gets more complex(such as capturing the current path)
 // the need for such a helper function increases.
