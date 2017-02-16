@@ -1,9 +1,9 @@
 // Contains the object structure and methods relating to the USER.
-package USER
+package USERS
 
 import (
 	"encoding/json"
-
+	"github.com/Esseh/notorious-dev/CORE"
 	"github.com/Esseh/retrievable"
 	"golang.org/x/net/context"
 	"google.golang.org/appengine/datastore"
@@ -16,7 +16,7 @@ var (
 
 type (
 	// Represents an individual user.
-	USER_User struct {
+	User struct {
 		// First and Last Name
 		First, Last       string
 		Email             string
@@ -28,7 +28,7 @@ type (
 		retrievable.IntID `datastore:"-" json:"-"`
 	}
 	// An encrypted user.
-	USER_EncryptedUser struct {
+	EncryptedUser struct {
 		First, Last string
 		Email       string
 		Avatar      bool `datastore:",noindex"`
@@ -36,7 +36,7 @@ type (
 	}
 )
 
-func (u *USER_User) Key(ctx context.Context, key interface{}) *datastore.Key {
+func (u *User) Key(ctx context.Context, key interface{}) *datastore.Key {
 	if v, ok := key.(retrievable.IntID); ok {
 		return datastore.NewKey(ctx, UsersTable, "", int64(v), nil)
 	}
@@ -44,22 +44,22 @@ func (u *USER_User) Key(ctx context.Context, key interface{}) *datastore.Key {
 }
 
 // Converts user to an encrypted user.
-func (u *USER_User) toEncrypt() (*USER_EncryptedUser, error) {
-	e := &USER_EncryptedUser{
+func (u *User) toEncrypt() (*EncryptedUser, error) {
+	e := &EncryptedUser{
 		First:     u.First,
 		Last:      u.Last,
 		Avatar:    u.Avatar,
 		Bio:       u.Bio,
 	}
-	email, err := AUTH_Encrypt([]byte(u.Email), encryptKey)
+	email, err := CORE.Encrypt([]byte(u.Email), CORE.EncryptKey)
 	if err != nil { return nil, err }
 	e.Email = email
 	return e, nil
 }
 
 // Converts encrypted user to normal user.
-func (u *USER_User) fromEncrypt(e *USER_EncryptedUser) error {
-	email, err := AUTH_Decrypt(e.Email, encryptKey)
+func (u *User) fromEncrypt(e *EncryptedUser) error {
+	email, err := CORE.Decrypt(e.Email, CORE.EncryptKey)
 	if err != nil { return err }
 	u.First = e.First
 	u.Last = e.Last
@@ -70,14 +70,14 @@ func (u *USER_User) fromEncrypt(e *USER_EncryptedUser) error {
 }
 
 // User -> JSON
-func (u *USER_User) Serialize() []byte {
+func (u *User) Serialize() []byte {
 	data, _ := u.toEncrypt()
 	ret, _ := json.Marshal(&data)
 	return ret
 }
 // JSON -> User
-func (u *USER_User) Unserialize(data []byte) error {
-	e := &USER_EncryptedUser{}
+func (u *User) Unserialize(data []byte) error {
+	e := &EncryptedUser{}
 	err := json.Unmarshal(data, e)
 	if err != nil { return err }
 	return u.fromEncrypt(e)
