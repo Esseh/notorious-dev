@@ -34,7 +34,8 @@ func UploadAvatar(ctx context.Context, userID int64, header *multipart.FileHeade
 // Retrieves an AUTH_User from the currently logged in user.
 func GetUserFromSession(ctx context.Context,req *http.Request) (*User, error) {
 	// Get session ID from cookie
-	sessionIDString, _ := COOKIE.GetValue(req, "session")
+	sessionIDString, err := COOKIE.GetValue(req, "session")
+	if err != nil { return &User{}, err) }
 	sessionID, _ := strconv.ParseInt(sessionIDString, 10, 64) // Change cookie val into key	
 
 	// get session data
