@@ -25,7 +25,7 @@ type (
 // Retrieves the Local Login Account, overloaded to handle OAUTH.
 func (l *LoginLocalAccount) Get(ctx context.Context, key interface{}) error {
 	getErr := retrievable.GetEntity(ctx, key, l) 
-	if getErr != nil {                           
+	if getErr != nil { 
 		oauth := LoginOauthAccount{}
 		ogetErr := retrievable.GetEntity(ctx, key, &oauth)
 		if ogetErr != nil { return ogetErr }
@@ -38,7 +38,6 @@ func (l *LoginLocalAccount) Get(ctx context.Context, key interface{}) error {
 func (l *LoginLocalAccount) Place(ctx context.Context, key interface{}) (*datastore.Key, error) {
 	if string(l.Password) == "" { // OAuth Case
 		oauth := LoginOauthAccount{}
-		oauth.UserID = oauth.UserID
 		return retrievable.PlaceEntity(ctx, key, &oauth)
 	} else { // LoginLocal Case
 		return retrievable.PlaceEntity(ctx, key, l)
@@ -60,5 +59,6 @@ type LoginOauthAccount struct {
 }
 // String Keys
 func (l *LoginOauthAccount) Key(ctx context.Context, key interface{}) *datastore.Key {
-	return datastore.NewKey(ctx, OauthTable, key.(string), 0, nil)
+	e, _ := CORE.Encrypt([]byte(key.(string)), CORE.EncryptKey)
+	return datastore.NewKey(ctx, OauthTable, e, 0, nil)
 }
