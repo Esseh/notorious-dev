@@ -21,14 +21,12 @@ type HeaderData struct {
 
 // Constructs an instance of Context
 func NewContext(res http.ResponseWriter, req *http.Request) Context{
-	user, err := USERS.GetUserFromSession(req)
 	ctx := Context { 
 		Req: req,
 		Res: res,
-		User: user,
-		UserException: err,
 	}
 	ctx.Context = appengine.NewContext(req)
+	ctx.User, ctx.UserException = USERS.GetUserFromSession(ctx.Context,req)
 	return ctx
 }
 
