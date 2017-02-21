@@ -48,11 +48,13 @@ func TestUser(t *testing.T){
 	}
 	testing.Coverage()
 }
+
+
 func TestSession(t *testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()
 	if err != nil {
-		fmt.Println("PANIC in TestSession")
+		fmt.Println("PANIC in TestSession","\n",err)
 		panic(1)
 	}
 	s := &Session{}
