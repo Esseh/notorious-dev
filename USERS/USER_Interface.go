@@ -44,15 +44,19 @@ func GetUserFromSession(ctx context.Context,req *http.Request) (*User, error) {
 	
 	// get user id from session data
 	userID := session.UserID
+	
+	if userID != 0 {	
+		// Get User
+		user := User{}
+		retrievable.GetEntity(ctx,userID,&user)
 
-	// Get User
-	user := User{}
-	retrievable.GetEntity(ctx,userID,&user)
+		// Update Session Information
+		session.LastUsed = time.Now()
+		retrievable.PlaceEntity(ctx,sessionID,&session)
 
-	// Update Session Information
-	session.LastUsed = time.Now()
-	retrievable.PlaceEntity(ctx,sessionID,&session)
-
-	// Return Result
-	return &user, nil
+		// Return Result
+		return &user, nil	
+	} else {
+		return &User{}, errors.New("0 Key is Bad Key")
+	}
 }
