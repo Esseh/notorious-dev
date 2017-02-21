@@ -3,6 +3,7 @@ import (
 	"errors"
 	"strconv"
 	"github.com/Esseh/retrievable"
+	"github.com/Esseh/notorious-dev/USERS"
 	"github.com/Esseh/notorious-dev/CONTEXT"
 	"google.golang.org/appengine/datastore"
 )
@@ -20,8 +21,12 @@ func UpdateNoteContent(ctx CONTEXT.Context,id string,UpdatedContent Content, Upd
 	Note := Note{}
 	noteID, err := strconv.ParseInt(id, 10, 64); if err != nil { return err }
 	err = retrievable.GetEntity(ctx, noteID, &Note); if err != nil { return err }
-	validated := VerifyNotePermission(ctx, &Note); if !validated { return errors.New("Permission Error: Not Allowed") }
-	if Note.OwnerID == int64(ctx.User.IntID) { Note.Protected = UpdatedNote.Protected }	
+	validated := CanEditNote(&Note,ctx.User); if !validated { return errors.New("Permission Error: Not Allowed") }
+	if Note.OwnerID == int64(ctx.User.IntID) { 
+		Note.PublicallyViewable = UpdatedNote.PublicallyViewable
+		Note.PublicallyEditable = UpdatedNote.PublicallyEditable
+		Note.Collaborators = UpdatedNote.Collaborators
+	}	
 	_, err = retrievable.PlaceEntity(ctx, noteID, &Note); if err != nil { return err }
 	_, err = retrievable.PlaceEntity(ctx, Note.ContentID, &UpdatedContent); return err
 }
@@ -53,12 +58,25 @@ func GetAllNotes(ctx CONTEXT.Context, userID int64) ([]NoteOutput, error) {
 	return output, nil
 }
 
-// Verifies that the currently logged in user is allowed to interact with the Note.
-func VerifyNotePermission(ctx CONTEXT.Context, note *Note) bool {
-	redirect := strconv.FormatInt(note.OwnerID, 10)
-	if note.OwnerID != int64(ctx.User.IntID) && note.Protected {
-		ctx.Redirect("/view/"+redirect)
-		return false
+
+func CanViewNote(note *Note,user *USERS.User) bool {
+	uid := int64(user.IntID)
+	if uid == note.OwnerID { return true }
+	for _, v := range note.Collaborators {
+		if uid == v {
+			return true
+		}
 	}
-	return true
+	return note.PublicallyViewable
+}
+
+func CanEditNote(note *Note,user *USERS.User) bool {
+	uid := int64(user.IntID)
+	if uid == note.OwnerID { return true }
+	for _, v := range note.Collaborators {
+		if uid == v {
+			return true
+		}
+	}	
+	return note.PublicallyEditable
 }

@@ -13,8 +13,10 @@ var (
 type Note struct {
 	// The ID to the AUTH_User owner.
 	OwnerID int64
-	// A boolean value representing whether or not it can be publically edited.
-	Protected bool
+	// View/Edit Permissions for the Public
+	PublicallyViewable,PublicallyEditable bool
+	// Collaborators who bypass the security check.
+	Collaborators []int64
 	// The ID to the related Content
 	ContentID int64
 }
