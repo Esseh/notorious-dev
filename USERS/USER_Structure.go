@@ -46,17 +46,16 @@ func (u *User) Key(ctx context.Context, key interface{}) *datastore.Key {
 }
 
 // Converts user to an encrypted user.
-func (u *User) toEncrypt() (*EncryptedUser, error) {
+func (u *User) toEncrypt() (*EncryptedUser) {
 	e := &EncryptedUser{
 		First:     u.First,
 		Last:      u.Last,
 		Avatar:    u.Avatar,
 		Bio:       u.Bio,
 	}
-	email, err := CORE.Encrypt([]byte(u.Email), CORE.EncryptKey)
-	if err != nil { return nil, err }
+	email, _ := CORE.Encrypt([]byte(u.Email), CORE.EncryptKey)
 	e.Email = email
-	return e, nil
+	return e
 }
 
 // Converts encrypted user to normal user.
@@ -73,7 +72,7 @@ func (u *User) fromEncrypt(e *EncryptedUser) error {
 
 // User -> JSON
 func (u *User) Serialize() []byte {
-	data, _ := u.toEncrypt()
+	data := u.toEncrypt()
 	ret, _ := json.Marshal(&data)
 	return ret
 }
