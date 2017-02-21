@@ -20,37 +20,28 @@ import (
 
 // Retrieves an ID for AUTH_User from login information.
 func GetUserIDFromLogin(ctx CONTEXT.Context, email, password string) (int64, error) {
-	urID := LoginLocalAccount{}
-	if getErr := retrievable.GetEntity(ctx, email, &urID); getErr != nil { return -1, getErr }
-	if compareErr := bcrypt.CompareHashAndPassword(urID.Password, []byte(password)); compareErr != nil {
-		return -1, compareErr
-	}
-	return urID.UserID, nil
+	UserLogin := LoginLocalAccount{}
+	if getErr := retrievable.GetEntity(ctx, email, &UserLogin); getErr != nil { return -1, getErr }
+	return UserLogin.UserID, bcrypt.CompareHashAndPassword(UserLogin.Password, []byte(password))
 }
 
 // Utilizing an AUTH_User and username/password information it creates a database entry for their AUTH_LoginLocalAccount.
-func CreateUserFromLogin(ctx CONTEXT.Context, email, password string, u *USERS.User) (*USERS.User, error) {
+func CreateUserFromLogin(ctx CONTEXT.Context, email, password string, u *USERS.User) (error) {
 	checkLogin := LoginLocalAccount{}
 	// Check that user does not exist
-	if checkErr := retrievable.GetEntity(ctx, email, &checkLogin); checkErr == nil {
-		return u, errors.New("Username Already Exists")
-	} else if checkErr != datastore.ErrNoSuchEntity && checkErr != nil {
-		return u, checkErr
+	if checkErr := retrievable.GetEntity(ctx, email, &checkLogin); checkErr == nil ||  (checkErr != datastore.ErrNoSuchEntity && checkErr != nil) {
+		return errors.New("Cannot Make New User")
 	}
 
 	ukey, putUserErr := retrievable.PlaceEntity(ctx, retrievable.IntID(0), u)
-	if putUserErr != nil { return u, putUserErr }
-	if u.IntID == 0 { return u, errors.New("HEY, DATASTORE IS STUPID") }
+	if putUserErr != nil { return putUserErr }
 
-	cryptPass, cryptErr := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if cryptErr != nil { return u, cryptErr }
-
-	uLogin := LoginLocalAccount{
+	cryptPass, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	_, putErr := retrievable.PlaceEntity(ctx, email, &LoginLocalAccount{
 		Password: cryptPass,
 		UserID:   ukey.IntID(),
-	}
-	_, putErr := retrievable.PlaceEntity(ctx, email, &uLogin)
-	return u, putErr
+	})
+	return putErr
 }
 
 // Initializes a new AUTH_Session and returns the ID of that AUTH_Session.
@@ -116,7 +107,7 @@ func RegisterNewUser(ctx CONTEXT.Context, username, password, confirmPassword, f
 	}		
 	if !CORE.ValidLogin(username,password) { return "Invalid Login Information", errors.New("Bad Login") }
 	if password != confirmPassword { return "Passwords Do Not Match", errors.New("Password Mismatch") }
-	_, err := CreateUserFromLogin(ctx, newUser.Email, password, newUser)
+	err := CreateUserFromLogin(ctx, newUser.Email, password, newUser)
 	return "Username Taken", err
 }
 
