@@ -13,6 +13,60 @@ import(
 	"github.com/Esseh/notorious-dev/USERS"
 )
 
+func TestAPI_InitializeRoot(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in InitializeNote")
+		panic(1)
+	}
+	// Place a Fake Error
+	retrievable.PlaceEntity(ctx,int64(1),&USERS.User{})
+
+	// Make ctx1
+	req1 := httptest.NewRequest("GET", "/", nil)
+	values1 := url.Values{}; 
+	values1.Add("RootID","2")
+	req1.Form = values1
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx; 
+	ctx1.Req = req1
+
+	// Make ctx2
+	req2 := httptest.NewRequest("GET", "/", nil)
+	values2 := url.Values{}; 
+	values2.Add("RootID","1")
+	req2.Form = values2
+	ctx2 := CONTEXT.Context{}
+	ctx2.Context = ctx; 
+	ctx2.Req = req2
+
+	// Make ctx3
+	req3 := httptest.NewRequest("GET", "/", nil)
+	values3 := url.Values{}; 
+	values3.Add("RootID","1")
+	req3.Form = values3
+	ctx3 := CONTEXT.Context{}
+	ctx3.Context = ctx; 
+	ctx3.Req = req3
+
+	// User Doesn't Exist Case
+	if InitializeRoot(ctx1) != `{"success":fail,"code":5}`{
+		fmt.Println("FAIL InitializeRoot 1")
+		t.Fail()
+	}
+	// Successful Case
+	if InitializeRoot(ctx2) != `{"success":success,"code":-1}`{
+		fmt.Println("FAIL InitializeRoot 2")
+		t.Fail()
+	}
+	// Already Exists Case
+	if InitializeRoot(ctx3) != `{"success":fail,"code":6}`{
+		fmt.Println("FAIL InitializeRoot 3")
+		t.Fail()
+	}
+}
+
 func TestAPI_AddNote(t *testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()
@@ -189,13 +243,6 @@ func TestAPI_RemoveNote(t *testing.T){
 		fmt.Println("FAIL API_RemoveNote 5")
 		t.Fail()
 	}
-}
-
-func TestAPI_InitializeRoot(t *testing.T){
-	// Database Fail Case
-	// User Doesn't Exist Case
-	// Successful Case
-	// Already Exists Case
 }
 
 func TestAPI_OpenFolder(t *testing.T){

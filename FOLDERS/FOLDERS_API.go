@@ -168,5 +168,8 @@ func RemoveNote(ctx CONTEXT.Context) string {
 }
 
 func InitializeRoot(ctx CONTEXT.Context) string {
+//	folderID := ctx.Req.FormValue("RootID")
+	// Already Exists
+//	if retrievable.GetEntity == nil {}
 	return ""
 }
