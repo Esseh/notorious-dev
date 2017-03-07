@@ -14,13 +14,24 @@ import(
 )
 
 func TestAPI_AddNote(t *testing.T){
-
+	// Database Fail Case
+	// Not Owner Case
+	// Successful Case
+	// Assert Success
 }
+
 func TestAPI_RemoveNote(t *testing.T){
-
+	// Database Fail Case
+	// Not Owner Case
+	// Successful Case
+	// Assert Success
 }
-func TestAPI_InitializeRoot(t *testing.T){
 
+func TestAPI_InitializeRoot(t *testing.T){
+	// Database Fail Case
+	// User Doesn't Exist Case
+	// Successful Case
+	// Already Exists Case
 }
 
 func TestAPI_OpenFolder(t *testing.T){
