@@ -14,10 +14,93 @@ import(
 )
 
 func TestAPI_AddNote(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in AddNote")
+		panic(1)
+	}
+	
+	// Stub Database
+	retrievable.PlaceEntity(ctx,"1",&Folder{
+		IsRoot:true,
+		OwnerID:int64(1),
+	})
+	retrievable.PlaceEntity(ctx,"2",&Folder{
+		IsRoot:true,
+		OwnerID:int64(2),
+	})
+	retrievable.PlaceEntity(ctx,int64(1111),&NOTES.Note{
+		OwnerID:int64(2),
+		PublicallyViewable: true,
+		ContentID: int64(1111),
+	})
+	retrievable.PlaceEntity(ctx,int64(1111),&NOTES.Content{Title:"note1"})	
+	
+	// Make ctx1
+	req1 := httptest.NewRequest("GET", "/", nil)
+	values1 := url.Values{}; 
+	values1.Add("FolderID","1")
+	values1.Add("NoteID","2222")
+	req1.Form = values1
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx; 
+	ctx1.Req = req1
+	ctx1.User = &USERS.User{IntID: retrievable.IntID(1),}
+	
+	// Make ctx2
+	req2 := httptest.NewRequest("GET", "/", nil)
+	values2 := url.Values{}; 
+	values2.Add("FolderID","2")
+	values2.Add("NoteID","1111")
+	req2.Form = values2
+	ctx2 := CONTEXT.Context{}
+	ctx2.Context = ctx; 
+	ctx2.Req = req2
+	ctx2.User = &USERS.User{IntID: retrievable.IntID(1),}
+	
+	// Make ctx3
+	req3 := httptest.NewRequest("GET", "/", nil)
+	values3 := url.Values{}; 
+	values3.Add("FolderID","1")
+	values3.Add("NoteID","1111")
+	req3.Form = values3
+	ctx3 := CONTEXT.Context{}
+	ctx3.Context = ctx; 
+	ctx3.Req = req3
+	ctx3.User = &USERS.User{IntID: retrievable.IntID(1),}	
+		
 	// Database Fail Case
+	if AddNote(ctx1) != `{"success":false,"code":1}` { 
+		fmt.Println("FAIL API_AddNote 1")
+		t.Fail()	
+	}
 	// Not Owner Case
+	if AddNote(ctx2) != `{"success":false,"code":3}` { 
+		fmt.Println("FAIL API_AddNote 2")
+		t.Fail()	
+	}
 	// Successful Case
-	// Assert Success
+	if AddNote(ctx3) != `{"success":true,"code":-1}` { 
+		fmt.Println("FAIL API_AddNote 3")
+		t.Fail()	
+	}
+	// Successful Case (repeat)
+	if AddNote(ctx3) != `{"success":false,"code":0}` { 
+		fmt.Println("FAIL API_AddNote 4")
+		t.Fail()	
+	}
+	// Assert Success 
+	testfolder := Folder{}
+	retrievable.GetEntity(ctx,"1",&testfolder)
+	if len(testfolder.ChildNotes) > 0 {
+		if testfolder.ChildNotes[0] != int64(1111) {
+			fmt.Println("FAIL API_AddNote 5")
+			t.Fail()
+		}
+	} else {
+		fmt.Println("AddNote 5 Unrun")
+	}
 }
 
 func TestAPI_RemoveNote(t *testing.T){
@@ -196,6 +279,12 @@ func TestAPI_NewFolder(t *testing.T){
 	// Normal Case
 	if NewFolder(ctx4) != `{"success":true,"code":-1}` { 
 		fmt.Println("FAIL API_NewFolder 4")
+		fmt.Println(NewFolder(ctx4))
+		t.Fail()		
+	}
+	// Normal Case (repeat)
+	if NewFolder(ctx4) != `{"success":false,"code":0}` { 
+		fmt.Println("FAIL API_NewFolder 6")
 		fmt.Println(NewFolder(ctx4))
 		t.Fail()		
 	}

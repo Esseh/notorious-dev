@@ -16,6 +16,8 @@ func NewFolder(ctx CONTEXT.Context) string {
 	if len(parentID+"/"+folderName) > 400 { return `{"success":false,"code":2}` }
 	// Make sure the parent actually exists. If it does then retrieve it.
 	if retrievable.GetEntity(ctx,parentID,&parentFolder) != nil { return `{"success":false,"code":1}` }
+	// If that folder already exists, just abort now.
+	for _,v := range parentFolder.ChildFolders { if v == folderName { return `{"success":false,"code":0}` } }
 	// If the parent folder isn't owned by the user accessing it then stop.
 	if int64(ctx.User.IntID) != parentFolder.OwnerID { return `{"success":false,"code":3}` }
 	// Place the Entry
@@ -126,7 +128,23 @@ func OpenFolder(ctx CONTEXT.Context) string {
 }
 
 func AddNote(ctx CONTEXT.Context) string {
-	return ""
+	folder := Folder{}
+	note := NOTES.Note{}
+	folderID := ctx.Req.FormValue("FolderID")
+	noteID, _ := strconv.ParseInt(ctx.Req.FormValue("NoteID"),10,64)
+	// Get folder and note
+	getErr1 := retrievable.GetEntity(ctx,folderID,&folder)
+	getErr2 := retrievable.GetEntity(ctx,noteID,&note)
+	if getErr1 != nil || getErr2 != nil { return `{"success":false,"code":1}` }
+	// If the parent folder isn't owned by the user accessing it then stop.
+	if int64(ctx.User.IntID) != folder.OwnerID { return `{"success":false,"code":3}` }
+	// Make sure the reference isn't already inside.
+	for _,v := range folder.ChildNotes { if v == noteID { return `{"success":false,"code":0}`} }
+	// Attatch the reference and Update
+	folder.ChildNotes = append(folder.ChildNotes,noteID)
+	_ , placeErr := retrievable.PlaceEntity(ctx,folderID,&folder)
+	if placeErr != nil { return `{"success":false,"code":1}` }
+	return `{"success":true,"code":-1}`
 }
 
 func RemoveNote(ctx CONTEXT.Context) string {
