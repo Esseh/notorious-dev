@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/CONTEXT"
+	"github.com/Esseh/notorious-dev/USERS"
 	"github.com/Esseh/notorious-dev/NOTES"
 )
 
@@ -168,8 +169,21 @@ func RemoveNote(ctx CONTEXT.Context) string {
 }
 
 func InitializeRoot(ctx CONTEXT.Context) string {
-//	folderID := ctx.Req.FormValue("RootID")
-	// Already Exists
-//	if retrievable.GetEntity == nil {}
-	return ""
+	folderID := ctx.Req.FormValue("RootID")
+	userID, _ := strconv.ParseInt(folderID,10,64)
+
+	// Invalid User?
+	if retrievable.GetEntity(ctx,userID,&USERS.User{}) != nil { return `{"success":false,"code":5}` }
+	
+	// Already Exists?
+	folder := Folder{}
+	if retrievable.GetEntity(ctx,folderID,&folder) == nil { return `{"success":false,"code":6}` }
+	// Create Root
+	_ , placeErr := retrievable.PlaceEntity(ctx,folderID,&Folder{
+		IsRoot:true,
+		OwnerID:userID,
+	})
+	if placeErr != nil { return `{"success":true,"code":1}` }
+	// Success
+	return `{"success":true,"code":-1}`
 }
