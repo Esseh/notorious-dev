@@ -148,7 +148,23 @@ func AddNote(ctx CONTEXT.Context) string {
 }
 
 func RemoveNote(ctx CONTEXT.Context) string {
-	return ""
+	folder := Folder{}
+	note := NOTES.Note{}
+	folderID := ctx.Req.FormValue("FolderID")
+	noteID, _ := strconv.ParseInt(ctx.Req.FormValue("NoteID"),10,64)
+	// Get folder and note
+	getErr1 := retrievable.GetEntity(ctx,folderID,&folder)
+	getErr2 := retrievable.GetEntity(ctx,noteID,&note)
+	if getErr1 != nil || getErr2 != nil { return `{"success":false,"code":1}` }
+	// If the parent folder isn't owned by the user accessing it then stop.
+	if int64(ctx.User.IntID) != folder.OwnerID { return `{"success":false,"code":3}` }
+	// Build References Excluding the One Removed
+	newChildNotes := make([]int64,0)
+	for _,v := range folder.ChildNotes { if v != noteID { newChildNotes = append(newChildNotes,v) } }
+	folder.ChildNotes = newChildNotes
+	_ , placeErr := retrievable.PlaceEntity(ctx,folderID,&folder)
+	if placeErr != nil { return `{"success":false,"code":1}` }
+	return `{"success":true,"code":-1}`
 }
 
 func InitializeRoot(ctx CONTEXT.Context) string {

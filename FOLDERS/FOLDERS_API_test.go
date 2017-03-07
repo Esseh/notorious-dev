@@ -177,8 +177,8 @@ func TestAPI_RemoveNote(t *testing.T){
 		fmt.Println("FAIL API_RemoveNote 3")
 		t.Fail()	
 	}
-	// Successful Case (repeat)
-	if RemoveNote(ctx3) != `{"success":false,"code":0}` { 
+	// Successful Case (repeat) In this case a pointless delete is an idc value.
+	if RemoveNote(ctx3) != `{"success":true,"code":-1}` { 
 		fmt.Println("FAIL API_RemoveNote 4")
 		t.Fail()	
 	}
