@@ -79,7 +79,7 @@ func LoginToWebsite(ctx CONTEXT.Context,username,password string) (string, error
 	sessionID, err := CreateSessionID(ctx, userID)
 	if err != nil { return "Login error, try again later.", err }
 	ref := EmailReference{userID}
-	retrievable.PlaceEntity(ctx,username,&ref)
+	retrievable.PlaceEntity(ctx,strings.ToLower(username),&ref)
 	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessionID, 10))
 	return "Login error, try again later.",err
 }
