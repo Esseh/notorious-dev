@@ -9,6 +9,7 @@ import (
 
 const (
 	LoginTable         = "Login"
+	ReferenceTable	   = "ReferenceID"
 )
 
 type (
@@ -19,7 +20,7 @@ type (
 		// An encrypted password.
 		Password []byte
 	}
-
+	ReferenceID int64
 )
 
 // Retrieves the Local Login Account, overloaded to handle OAUTH.
@@ -61,4 +62,10 @@ type LoginOauthAccount struct {
 func (l *LoginOauthAccount) Key(ctx context.Context, key interface{}) *datastore.Key {
 	e, _ := CORE.Encrypt([]byte(key.(string)), CORE.EncryptKey)
 	return datastore.NewKey(ctx, OauthTable, e, 0, nil)
+}
+
+// Key for reference ID
+func (r *ReferenceID) Key(ctx context.Context, key interface{}) *datastore.Key {
+	e, _ := CORE.Encrypt([]byte(key.(string)), CORE.EncryptKey)
+	return datastore.NewKey(ctx, ReferenceTable, e, 0, nil)
 }

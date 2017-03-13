@@ -5,6 +5,17 @@ import(
 	"fmt"
 )
 
+func TestReference(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in TestReference")
+		panic(1)
+	}
+	var test *ReferenceID
+	test.Key(ctx,"teststring")
+}
+
 func TestLoginLocalAccount(t *testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()
