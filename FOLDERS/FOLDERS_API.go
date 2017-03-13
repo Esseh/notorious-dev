@@ -125,7 +125,7 @@ func OpenFolder(ctx CONTEXT.Context) string {
 	}
 	
 	// Return Success
-	return `{"success":true,"code":-1,folders:[`+validFolder+`],"notes":[`+validNotes+`]}`
+	return `{"success":true,"code":-1,"folders":[`+validFolder+`],"notes":[`+validNotes+`]}`
 }
 
 func AddNote(ctx CONTEXT.Context) string {

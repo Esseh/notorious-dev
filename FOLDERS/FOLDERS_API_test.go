@@ -296,7 +296,7 @@ func TestAPI_OpenFolder(t *testing.T){
 	
 	validNotes   := `{"title":"note1","id":1111,"noEdit":true},{"title":"note3","id":3333,"noEdit":false}`
 	validFolders := `"test_child_folder1","test_child_folder2","test_child_folder3"`
-	if OpenFolder(ctx1) != `{"success":true,"code":-1,folders:[`+validFolders+`],"notes":[`+validNotes+`]}` {
+	if OpenFolder(ctx1) != `{"success":true,"code":-1,"folders":[`+validFolders+`],"notes":[`+validNotes+`]}` {
 		fmt.Println("FAIL OpenFolder 1",OpenFolder(ctx1))
 		t.Fail()
 	}
