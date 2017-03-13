@@ -12,7 +12,7 @@ func TestReference(t *testing.T){
 		fmt.Println("PANIC in TestReference")
 		panic(1)
 	}
-	var test *ReferenceID
+	var test *EmailReference
 	test.Key(ctx,"teststring")
 }
 

@@ -20,7 +20,9 @@ type (
 		// An encrypted password.
 		Password []byte
 	}
-	ReferenceID int64
+	EmailReference struct {
+		UserID int64
+	}
 )
 
 // Retrieves the Local Login Account, overloaded to handle OAUTH.
@@ -65,7 +67,7 @@ func (l *LoginOauthAccount) Key(ctx context.Context, key interface{}) *datastore
 }
 
 // Key for reference ID
-func (r *ReferenceID) Key(ctx context.Context, key interface{}) *datastore.Key {
+func (r *EmailReference) Key(ctx context.Context, key interface{}) *datastore.Key {
 	e, _ := CORE.Encrypt([]byte(key.(string)), CORE.EncryptKey)
 	return datastore.NewKey(ctx, ReferenceTable, e, 0, nil)
 }
