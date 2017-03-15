@@ -13,7 +13,7 @@ func TestUpdateBackup(t *testing.T){
 		fmt.Println("PANIC in UpdateBackupTest")
 		panic(1)
 	}
-	if UpdateBackup(ctx,int64(24),int64(42),Backup{Title:"test"}) != nil {
+	if UpdateBackup(ctx,int64(24),int64(42),&Backup{Title:"test"}) != nil {
 		fmt.Println("FAIL UpdateBackup 1")
 		t.Fail()
 	}
@@ -33,7 +33,7 @@ func TestRetrieveBackup(t *testing.T){
 		panic(1)
 	}
 	// Place an Entry
-	UpdateBackup(ctx,int64(24),int64(42),Backup{Title:"test"})
+	UpdateBackup(ctx,int64(24),int64(42),&Backup{Title:"test"})
 	// Success Case
 	if (RetrieveBackup(ctx,int64(24),int64(42))).Title != "test" {
 		fmt.Println("FAIL RetrieveBackup 1")
@@ -58,7 +58,7 @@ func TestBackupExists(t *testing.T){
 		t.Fail()
 	}
 	// Place an Entry
-	UpdateBackup(ctx,int64(24),int64(42),Backup{Title:"test"})
+	UpdateBackup(ctx,int64(24),int64(42),&Backup{Title:"test"})
 	// Success Case
 	if !BackupExists(ctx,int64(24),int64(42)){
 		fmt.Println("FAIL BackupExists 2")
