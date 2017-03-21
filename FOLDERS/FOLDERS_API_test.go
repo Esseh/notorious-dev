@@ -13,6 +13,148 @@ import(
 	"github.com/Esseh/notorious-dev/USERS"
 )
 
+func TestAPI_RenameFolder(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in RenameFolder")
+		panic(1)
+	}
+	
+	// Stub Database
+	retrievable.PlaceEntity(ctx,"1",&Folder{
+		IsRoot:true,
+		OwnerID:int64(1),
+		ChildFolders:[]string{"test"},
+	})
+		retrievable.PlaceEntity(ctx,"1/test",&Folder{
+			OwnerID:int64(1),
+			ParentFolder:"1",
+			ChildFolders:[]string{"child1","child2","child3"},
+		})
+			retrievable.PlaceEntity(ctx,"1/test/child1",&Folder{
+				ParentFolder:"1/test",
+				OwnerID:int64(1),
+			})
+			retrievable.PlaceEntity(ctx,"1/test/child2",&Folder{
+				ParentFolder:"1/test",
+				OwnerID:int64(1),
+			})
+			retrievable.PlaceEntity(ctx,"1/test/child3",&Folder{
+				ParentFolder:"1/test",
+				OwnerID:int64(1),
+			})
+	retrievable.PlaceEntity(ctx,"2",&Folder{
+		IsRoot:true,
+		OwnerID:int64(2),
+		ChildFolders:[]string{"test"},
+	})
+		retrievable.PlaceEntity(ctx,"2/test",&Folder{
+			ParentFolder:"2",
+			OwnerID:int64(2),
+		})
+	
+	// Make ctx1
+	req1 := httptest.NewRequest("GET", "/", nil)
+	values1 := url.Values{}; 
+	values1.Add("ParentID","3")
+	values1.Add("FolderName","test")
+	values1.Add("NewName","new")
+	req1.Form = values1
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx; 
+	ctx1.Req = req1
+	ctx1.User = &USERS.User{IntID: retrievable.IntID(1),}
+	// Make ctx2
+	req2 := httptest.NewRequest("GET", "/", nil)
+	values2 := url.Values{}; 
+	values2.Add("ParentID","2")
+	values2.Add("FolderName","test")
+	values2.Add("NewName","new")
+	req2.Form = values2
+	ctx2 := CONTEXT.Context{}
+	ctx2.Context = ctx; 
+	ctx2.Req = req2
+	ctx2.User = &USERS.User{IntID: retrievable.IntID(1),}
+	// Make ctx3	
+	req3 := httptest.NewRequest("GET", "/", nil)
+	values3 := url.Values{}; 
+	values3.Add("ParentID","1")
+	values3.Add("FolderName","test")
+	values3.Add("NewName","new")
+	req3.Form = values3
+	ctx3 := CONTEXT.Context{}
+	ctx3.Context = ctx; 
+	ctx3.Req = req3
+	ctx3.User = &USERS.User{IntID: retrievable.IntID(1),}		
+	
+	// Database Fail Case
+	if RenameFolder(ctx1) != `{"success":false,"code":1}` {
+		fmt.Println("FAIL RenameFolder 1")
+		t.Fail()	
+	}
+	// Not Allowed Case
+	if x := RenameFolder(ctx2); x != `{"success":false,"code":3}` {
+		fmt.Println("FAIL RenameFolder 2",x)
+		t.Fail()
+	}
+	// Success Case
+	if x := RenameFolder(ctx3); x != `{"success":true,"code":-1}` {
+		fmt.Println("FAIL RenameFolder 3",x)
+		t.Fail()		
+	}
+	// Assert Success
+	// These Entries Shouldn't Exist Anymore
+	if retrievable.GetEntity(ctx,"1/test",&Folder{}) == nil {
+		fmt.Println("FAIL Assert RenameFolder 1")
+		t.Fail()			
+	}
+	if retrievable.GetEntity(ctx,"1/test/child1",&Folder{}) == nil {
+		fmt.Println("FAIL Assert RenameFolder 2")
+		t.Fail()			
+	}
+	if retrievable.GetEntity(ctx,"1/test/child2",&Folder{}) == nil {
+		fmt.Println("FAIL Assert RenameFolder 3")
+		t.Fail()			
+	}
+	if retrievable.GetEntity(ctx,"1/test/child3",&Folder{}) == nil {
+		fmt.Println("FAIL Assert RenameFolder 4")
+		t.Fail()			
+	}
+	// These Entries Should Check Out
+	parentF := Folder{}
+	currentF := Folder{}
+	childF1 := Folder{}
+	childF2 := Folder{}
+	childF3 := Folder{}
+	retrievable.GetEntity(ctx,"1",&parentF)
+	retrievable.GetEntity(ctx,"1/new",&currentF)
+	retrievable.GetEntity(ctx,"1/new/child1",&childF1)
+	retrievable.GetEntity(ctx,"1/new/child2",&childF2)
+	retrievable.GetEntity(ctx,"1/new/child3",&childF3)
+	// Finish Assertions
+	if parentF.ChildFolders[0] != "new" {
+		fmt.Println("FAIL Assert RenameFolder 5")
+		t.Fail()				
+	}
+	if currentF.ParentFolder != "1" {
+		fmt.Println("FAIL Assert RenameFolder 6",currentF.ParentFolder)
+		t.Fail()				
+	}
+	if childF1.ParentFolder != "1/new" {
+		fmt.Println("FAIL Assert RenameFolder 7")
+		t.Fail()				
+	}
+	if childF2.ParentFolder != "1/new" {
+		fmt.Println("FAIL Assert RenameFolder 8")
+		t.Fail()				
+	}
+	if childF3.ParentFolder != "1/new" {
+		fmt.Println("FAIL Assert RenameFolder 9")
+		t.Fail()				
+	}
+}
+
 func TestAPI_InitializeRoot(t *testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()

@@ -8,6 +8,53 @@ import (
 	"github.com/Esseh/notorious-dev/NOTES"
 )
 
+func RenameFolder(ctx CONTEXT.Context) string {
+	parentFolder := Folder{}
+	currentFolder:= Folder{}
+	childrenFolders := make([]Folder,0)
+	parentID := ctx.Req.FormValue("ParentID")
+	oldFolderName := ctx.Req.FormValue("FolderName")
+	newFolderName := ctx.Req.FormValue("NewName")
+	// Make sure the parent actually exists. If it does then retrieve it.
+	parentErr := retrievable.GetEntity(ctx,parentID,&parentFolder)	
+	// Make sure the current actually exists. If it does then retrieve it.	
+	childErr  := retrievable.GetEntity(ctx,parentID+"/"+oldFolderName,&currentFolder) 	
+	if parentErr != nil || childErr != nil { return `{"success":false,"code":1}` }	
+	// Make sure the user owns the current folders.
+	if int64(ctx.User.IntID) != parentFolder.OwnerID || int64(ctx.User.IntID) != currentFolder.OwnerID { return `{"success":false,"code":3}` }
+	// Retrieve Child Folders
+	for _,v := range currentFolder.ChildFolders {
+		folder := Folder{}
+		err := retrievable.GetEntity(ctx,parentID+"/"+oldFolderName+"/"+v,&folder)
+		if err != nil { continue }
+		childrenFolders = append(childrenFolders,folder)
+	}	
+	
+	// Change Name of Child for parent and update
+	for i,v := range parentFolder.ChildFolders {
+		if v == oldFolderName {
+			parentFolder.ChildFolders[i] = newFolderName
+			break
+		}
+	}
+	retrievable.PlaceEntity(ctx,parentID,&parentFolder)	
+	
+	// Recursively Delete Old Entries and Make New Corrected Entries
+	var updateAll func(CONTEXT.Context,string,string,string)
+	updateAll = func(ctxi CONTEXT.Context, badKey, goodKey, parentKey string){
+		targetFolder := Folder{}
+		retrievable.GetEntity(ctxi,badKey,&targetFolder)
+		for _,v := range targetFolder.ChildFolders {
+			updateAll(ctxi, badKey + "/" + v, goodKey + "/" + v, goodKey)
+		}
+		retrievable.DeleteEntity(ctxi,(&Folder{}).Key(ctxi,badKey))
+		targetFolder.ParentFolder = parentKey
+		retrievable.PlaceEntity(ctxi,goodKey,&targetFolder)
+	}
+	updateAll(ctx,parentID+"/"+oldFolderName,parentID+"/"+newFolderName,parentID)
+	return `{"success":true,"code":-1}`
+}
+
 func NewFolder(ctx CONTEXT.Context) string {
 	parentFolder := Folder{}
 	parentID := ctx.Req.FormValue("ParentID")
