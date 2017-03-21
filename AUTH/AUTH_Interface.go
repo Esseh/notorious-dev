@@ -2,7 +2,6 @@ package AUTH
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"net/http"
 	"strconv"
@@ -119,9 +118,7 @@ func RegisterNewUser(ctx CONTEXT.Context, username, password, confirmPassword, f
 func OAuthLogin(req *http.Request, res http.ResponseWriter, id, first, last, redirect string) {
 	ctx := CONTEXT.NewContext(res, req)
 	err := LoginFromOauth(ctx, id)
-	fmt.Fprint(res,"FIRST ERROR",err)
 	if err == ExistingOAuthErr {
-		fmt.Fprint(res,"TRYING TO REGISTER",err)
 		RegisterFromOauth(ctx, id, first, last)
 	}
 	redirect = strings.Replace(redirect, "%2f", "/", -1)
@@ -132,15 +129,11 @@ func OAuthLogin(req *http.Request, res http.ResponseWriter, id, first, last, red
 func LoginFromOauth(ctx CONTEXT.Context, email string) error {
 	l := LoginOauthAccount{}
 	err := retrievable.GetEntity(ctx, email, &l)
-	fmt.Fprint(ctx.Res,"SECOND ERROR",err)
 	if err != nil { return ExistingOAuthErr }
 	sessID, err := CreateSessionID(ctx, l.UserID)
-	fmt.Fprint(ctx.Res,"THIRD ERROR",err)
 	if err != nil { return err }
 	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessID, 10))
-	fmt.Fprint(ctx.Res,"FOURTH ERROR",err)
 	if err != nil { return err }
-	fmt.Fprint(ctx.Res,"LOGIN SUCCESS",err)
 	return nil
 }
 
@@ -150,7 +143,6 @@ func RegisterFromOauth(ctx CONTEXT.Context, email, first, last string) error {
 
 	// Check that user does not exist
 	if checkErr := retrievable.GetEntity(ctx, email, &checkLogin); checkErr == nil { 
-		fmt.Fprint(ctx.Res,"FIFTH ERROR",checkErr)
 		return checkErr 
 	}
 	u := USERS.User{
@@ -159,14 +151,11 @@ func RegisterFromOauth(ctx CONTEXT.Context, email, first, last string) error {
 		Last:  last,
 	}
 	ukey, putUserErr := retrievable.PlaceEntity(ctx, int64(0), &u)
-	fmt.Fprint(ctx.Res,"SIXTH ERROR",putUserErr)
 	if putUserErr != nil { return putUserErr }	
 	uLogin := LoginOauthAccount{}
 	uLogin.UserID = ukey.IntID()
 	_ , putErr := retrievable.PlaceEntity(ctx, email, &uLogin)
-	fmt.Fprint(ctx.Res,"SEVENTH ERROR",putErr)
 	if putErr != nil { return putErr }
 	err := LoginFromOauth(ctx,email)
-	fmt.Fprint(ctx.Res,"EIGHTH ERROR",err)
 	return err
 }
