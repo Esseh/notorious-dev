@@ -134,6 +134,8 @@ func LoginFromOauth(ctx CONTEXT.Context, email string) error {
 	if err != nil { return err }
 	err = COOKIE.Make(ctx.Res, "session", strconv.FormatInt(sessID, 10))
 	if err != nil { return err }
+	ref := EmailReference{int64(l.UserID)}
+	retrievable.PlaceEntity(ctx,strings.ToLower(email),&ref)
 	return nil
 }
 
