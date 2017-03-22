@@ -45,8 +45,8 @@ func TestGetRating(t *testing.T){
 		t.Fail()
 	}
 	// Note Exists Case
-	if GetRating(ctx2) != `{"success":true,"totalRating":0,"code":-1}` {
-		fmt.Println("FAIL GetRating 2")
+	if x := GetRating(ctx2); x != `{"success":true,"totalRating":0,"code":-1}` {
+		fmt.Println("FAIL GetRating 2",x)
 		t.Fail()
 	}
 	// Assert Success
@@ -77,7 +77,7 @@ func TestSetRating(t *testing.T){
 	ctx0 := CONTEXT.Context{}
 	ctx0.Context = ctx; 
 	ctx0.Req = req0
-	ctx0.User = &USERS.User{IntID:retrievable.IntID(int64(2)),}
+	ctx0.User = &USERS.User{}
 	
 	// Make ctx1
 	req1 := httptest.NewRequest("GET", "/", nil)
@@ -121,7 +121,7 @@ func TestSetRating(t *testing.T){
 	ctx4 := CONTEXT.Context{}
 	ctx4.Context = ctx; 
 	ctx4.Req = req4
-	ctx4.User = &USERS.User{IntID:retrievable.IntID(int64(1)),}	
+	ctx4.User = &USERS.User{IntID:retrievable.IntID(int64(2)),}	
 	
 	// Make ctx5
 	req5 := httptest.NewRequest("GET", "/", nil)
@@ -152,11 +152,15 @@ func TestSetRating(t *testing.T){
 		fmt.Println("FAIL SetRating 3")
 		t.Fail()
 	} 	
+	// Assert Success
+	if x := GetRating(ctx5); x != `{"success":true,"totalRating":3,"code":-1}` {
+		fmt.Println("FAIL SetRating 4",x)
+		t.Fail()	
+	}
 	// Run Additional Mock Rating
 	SetRating(ctx4)
-	// Assert Success
-	if GetRating(ctx5) != `{"success":true,"totalRating":3.5,"code":-1}` {
-		fmt.Println("FAIL SetRating 4")
+	if x := GetRating(ctx5); x != `{"success":true,"totalRating":3.5,"code":-1}` {
+		fmt.Println("FAIL SetRating 5",x)
 		t.Fail()	
 	}
 }
