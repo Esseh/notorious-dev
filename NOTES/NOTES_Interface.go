@@ -8,6 +8,35 @@ import (
 	"google.golang.org/appengine/datastore"
 )
 
+func API_SaveCopy(ctx CONTEXT.Context) string { 
+	OriginalNote    := Note{}
+	OriginalContent := Content{}
+
+	// Parse Key. Exit if bad Key
+	noteID, err := strconv.ParseInt(ctx.Req.FormValue("NoteID"), 10, 64)
+	if err != nil { return `{"success":false}` }
+	
+	// Get Note. Exit if doesn't exist.
+	err = retrievable.GetEntity(ctx,noteID,&OriginalNote)
+	if err != nil { return `{"success":false}` }
+	
+	// Ensure that the logged in user is actually allowed to look at the note.
+	if !CanViewNote(&OriginalNote,ctx.User) { return `{"success":false}` }
+	
+	// Get Original Content, check for random failure
+	err = retrievable.GetEntity(ctx,OriginalNote.ContentID,&OriginalContent)
+	if err != nil { return `{"success":false}` }
+	
+	// Make Copy of Original Content and attatch new Note Header to it owned by the current user.
+	contentKey , err := retrievable.PlaceEntity(ctx,int64(0),&OriginalContent)
+	if err != nil { return `{"success":false}` }
+	noteKey , err := retrievable.PlaceEntity(ctx,int64(0),&Note{OwnerID:int64(ctx.User.IntID),ContentID:contentKey.IntID(),})
+	if err != nil { return `{"success":false}` }
+	
+	// Success
+	return `{"success":true,"CopyID":`+strconv.FormatInt(noteKey.IntID(),10)+`}`
+}
+
 // Given a Content and Note it will construct instances of each, tie them together in the database and provide their keys.
 func CreateNewNote(ctx CONTEXT.Context,NewContent Content,NewNote Note) (*datastore.Key,*datastore.Key,error) {
 	contentKey, _ := retrievable.PlaceEntity(ctx, int64(0), &NewContent)
