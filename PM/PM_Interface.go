@@ -52,3 +52,7 @@ func RetrieveMessages(ctx CONTEXT.Context,pageWidth,pageNumber int)[]PrivateMess
 	}
 	return output
 }
+
+func GetPageNumbers(ctx CONTEXT.Context,pageWidth,currentPage int) []int64 {
+	return []int64{}
+}
