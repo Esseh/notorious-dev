@@ -54,5 +54,27 @@ func RetrieveMessages(ctx CONTEXT.Context,pageWidth,pageNumber int)[]PrivateMess
 }
 
 func GetPageNumbers(ctx CONTEXT.Context,pageWidth,currentPage int) []int64 {
-	return []int64{}
+	header := PrivateMessageHeader{}
+	retrievable.GetEntity(ctx,int64(ctx.User.IntID),&header)
+	remainingNumbers := 4
+	t := len(header.Messages) - 1;
+	if t < remainingNumbers { remainingNumbers = t }
+	if t < 0 { return []int64{} }
+	iterator := 1
+	output := []int64{int64(currentPage)}
+	for remainingNumbers != 0 {
+		if iterator > 20 { break }
+		if currentPage - iterator > 0 {
+			// Prepend Page Number
+			output = append([]int64{int64(currentPage - iterator)},output...)		
+			remainingNumbers--
+		}
+		if currentPage + iterator < len(header.Messages) {
+			// Append Page Number
+			output = append(output, int64(currentPage + iterator))			
+			remainingNumbers--
+		}
+		iterator += 1
+	}
+	return output
 }

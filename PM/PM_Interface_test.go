@@ -10,6 +10,55 @@ import(
 	"github.com/Esseh/notorious-dev/USERS"
 )
 
+func TestGetPageNumbers(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in GetPageNumbers")
+		panic(1)
+	}
+	// Stub Database
+	retrievable.PlaceEntity(ctx,int64(1),&USERS.User{})
+	
+	// Make Context
+	UserCtx := CONTEXT.Context{}
+	UserCtx.User = &USERS.User{Email:"test1@test1",IntID:retrievable.IntID(1),}
+	UserCtx.Context  = ctx
+	
+	// 0 element case
+	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{},})
+	if len(GetPageNumbers(UserCtx,5,0)) != 0 {
+		fmt.Println("FAIL GetPageNumbers 1")
+		t.Fail()
+	}
+	// 1 element case
+	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{0},})
+	if len(GetPageNumbers(UserCtx,5,0)) != 1 {
+		fmt.Println("FAIL GetPageNumbers 2")
+		t.Fail()	
+	}
+	// 7 element cases
+	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{0,0,0,0,0,0,0},})
+	// Beginning Case
+	t1 := GetPageNumbers(UserCtx,5,0)
+	if t1[0] != 0 || t1[1] != 1 || t1[2] != 2 || t1[3] != 3 || t1[4] != 4 {
+		fmt.Println("FAIL GetPageNumbers 3")
+		t.Fail()	
+	}
+	// Middle Case
+	t2 := GetPageNumbers(UserCtx,5,3)
+	if t2[0] != 1 || t2[1] != 2 || t2[2] != 3 || t2[3] != 4 || t2[4] != 5 {
+		fmt.Println("FAIL GetPageNumbers 4")
+		t.Fail()	
+	}
+	// End Case
+	t3 := GetPageNumbers(UserCtx,5,6)
+	if t3[0] != 2 || t3[1] != 3 || t3[2] != 4 || t3[3] != 5 || t3[4] != 6 {
+		fmt.Println("FAIL GetPageNumbers 5")
+		t.Fail()	
+	}
+}
+
 func TestSendMessage(t *testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()
@@ -99,54 +148,5 @@ func TestRetrieveMessages(t *testing.T){
 	if len(t5) != 1 || t5[0].Title != "1" {
 		fmt.Println("FAIL RetrieveMessages 5",t5)
 		t.Fail()
-	}
-}
-
-func TestGetPageNumbers(t *testing.T){
-	ctx, done, err := aetest.NewContext()
-	defer done()
-	if err != nil {
-		fmt.Println("PANIC in GetPageNumbers")
-		panic(1)
-	}
-	// Stub Database
-	retrievable.PlaceEntity(ctx,int64(1),&USERS.User{})
-	
-	// Make Context
-	UserCtx := CONTEXT.Context{}
-	UserCtx.User = &USERS.User{Email:"test1@test1",IntID:retrievable.IntID(1),}
-	UserCtx.Context  = ctx
-	
-	// 0 element case
-	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{},})
-	if len(GetPageNumbers(UserCtx,5,0)) != 0 {
-		fmt.Println("FAIL GetPageNumbers 1")
-		t.Fail()
-	}
-	// 1 element case
-	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{0},})
-	if len(GetPageNumbers(UserCtx,5,0)) != 1 {
-		fmt.Println("FAIL GetPageNumbers 2")
-		t.Fail()	
-	}
-	// 7 element cases
-	retrievable.PlaceEntity(ctx,int64(1),&PrivateMessageHeader{Messages:[]int64{0,0},})
-	// Beginning Case
-	t1 := GetPageNumbers(UserCtx,5,0)
-	if t1[0] != 0 || t1[1] != 1 || t1[2] != 2 || t1[3] != 3 || t1[4] != 4 {
-		fmt.Println("FAIL GetPageNumbers 3")
-		t.Fail()	
-	}
-	// Middle Case
-	t2 := GetPageNumbers(UserCtx,5,3)
-	if t2[0] != 1 || t2[1] != 2 || t2[2] != 3 || t2[3] != 4 || t2[4] != 5 {
-		fmt.Println("FAIL GetPageNumbers 4")
-		t.Fail()	
-	}
-	// End Case
-	t3 := GetPageNumbers(UserCtx,5,6)
-	if t3[0] != 2 || t3[1] != 3 || t3[2] != 4 || t3[3] != 5 || t3[4] != 6 {
-		fmt.Println("FAIL GetPageNumbers 5")
-		t.Fail()	
 	}
 }
