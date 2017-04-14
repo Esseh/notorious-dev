@@ -14,6 +14,6 @@ func TestMessageAndHeader(t *testing.T){
 		panic(1)
 	}
 	// No assertion to check, if it compiles it fulfills the interface.
-	(&PrivateMessage{}).Key(ctx,int64)
-	(&PrivateMessageHeader{}).Key(ctx,int64)
+	(&PrivateMessage{}).Key(ctx,int64(1))
+	(&PrivateMessageHeader{}).Key(ctx,int64(1))
 }
