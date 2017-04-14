@@ -17,7 +17,7 @@ func SendMessage(ctx CONTEXT.Context, email, title, content string){
 	RecieverHeader := PrivateMessageHeader{}
 	
 	retrievable.GetEntity(ctx,int64(ctx.User.IntID),&SenderHeader)
-	retrievable.GetEntity(ctx,ref.UserID,&SenderHeader)
+	retrievable.GetEntity(ctx,ref.UserID,&RecieverHeader)
 
 	PrivateMSG := PrivateMessage{
 		Sender:		ctx.User.Email,
@@ -30,8 +30,25 @@ func SendMessage(ctx CONTEXT.Context, email, title, content string){
 	// Send the Message
 	key , _ := retrievable.PlaceEntity(ctx.Context,int64(0), &PrivateMSG)
 	
-	SenderHeader.Messages = append([]int64{key.IntID()},SenderHeader.Messages...) 
-	RecieverHeader.Messages = append([]int64{key.IntID()},RecieverHeader.Messages...) 
+	RecieverHeader.Messages = append([]int64{key.IntID()},RecieverHeader.Messages...)
+	SenderHeader.Messages = append([]int64{key.IntID()},SenderHeader.Messages...)
 	retrievable.PlaceEntity(ctx, int64(ctx.User.IntID), &SenderHeader)
 	retrievable.PlaceEntity(ctx, ref.UserID, &RecieverHeader)
+}
+
+func RetrieveMessages(ctx CONTEXT.Context,pageWidth,pageNumber int)[]PrivateMessage{
+	header := PrivateMessageHeader{}
+	retrievable.GetEntity(ctx,int64(ctx.User.IntID),&header)
+	lowerBound := pageWidth*pageNumber
+	upperBound := pageWidth*(pageNumber+1)
+	if lowerBound >= len(header.Messages){ return []PrivateMessage{} }
+	if upperBound >  len(header.Messages){ upperBound = len(header.Messages) }
+	gatheredMessages := header.Messages[lowerBound:upperBound]
+	output := []PrivateMessage{}
+	for _,v := range gatheredMessages {
+		message := PrivateMessage{}
+		if retrievable.GetEntity(ctx,v,&message) != nil { continue }
+		output = append(output,message)
+	}
+	return output
 }
