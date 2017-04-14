@@ -6,6 +6,7 @@ import(
 	"google.golang.org/appengine/aetest"
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/CONTEXT"
+	"github.com/Esseh/notorious-dev/AUTH"
 	"github.com/Esseh/notorious-dev/USERS"
 )
 
@@ -19,11 +20,12 @@ func TestSendMessage(t *testing.T){
 	// Stub Database
 	retrievable.PlaceEntity(ctx,int64(1),&USERS.User{Email:"test1@test1",})
 	retrievable.PlaceEntity(ctx,int64(2),&USERS.User{Email:"test2@test2",})
-	
+	retrievable.PlaceEntity(ctx,"test1@test1",&AUTH.EmailReference{int64(1)})
+	retrievable.PlaceEntity(ctx,"test2@test2",&AUTH.EmailReference{int64(2)})	
 	// Make Context
 	UserCtx := CONTEXT.Context{}
 	UserCtx.User = &USERS.User{Email:"test1@test1",IntID:retrievable.IntID(1),}
-	UserCtx.Ctx  = ctx
+	UserCtx.Context  = ctx
 	
 	// User1 Sends Message to User2
 	SendMessage(UserCtx,"test2@test2","TestTitle","Test")
@@ -41,9 +43,9 @@ func TestSendMessage(t *testing.T){
 	// Assert that the sent message actually exists.
 	if len(Header.Messages) == 1 {
 		Message := PrivateMessage{}
-		retrievable.GetEntity(ctx,Header.Messages[0],&PrivateMessage{})
+		retrievable.GetEntity(ctx,Header.Messages[0],&Message)
 		if Message.Content != "Test" || Message.Sender != "test1@test1" {
-			fmt.Println("FAIL SendMessage 3")
+			fmt.Println("FAIL SendMessage 3",Message)
 			t.Fail()
 		}
 	}
