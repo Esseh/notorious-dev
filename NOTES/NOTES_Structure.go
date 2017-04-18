@@ -7,6 +7,8 @@ import (
 
 var (
 	NoteTable = "NotePermissions"
+	SubscriptionHeaderTable = "SubscriptionHeaders"
+	SubscriptionTable = "Subscriptions"
 )
 
 // Contains the metadata of a Note and represents the existance of one.
@@ -27,6 +29,13 @@ type Content struct {
 	Title, Content string
 }
 
+type SubscriptionHeader struct{
+	UserIDS []int64
+}
+type Subscription struct{
+	NoteIDS []int64
+}
+
 func (n *Note) Key(ctx context.Context, key interface{}) *datastore.Key {
 	return datastore.NewKey(ctx, NoteTable, "", key.(int64), nil)
 }
@@ -34,6 +43,12 @@ func (n *Content) Key(ctx context.Context, key interface{}) *datastore.Key {
 	return datastore.NewKey(ctx, "NoteContents", "", key.(int64), nil)
 }
 
+func (n *Subscription) Key(ctx context.Context, key interface{}) *datastore.Key {
+	return datastore.NewKey(ctx, SubscriptionTable, "", key.(int64), nil)
+}
+func (n *SubscriptionHeader) Key(ctx context.Context, key interface{}) *datastore.Key {
+	return datastore.NewKey(ctx, SubscriptionHeaderTable, "", key.(int64), nil)
+}
 
 // A convience structure used with GetAllNotes, provides a clean managable output on the front end.
 type NoteOutput struct {

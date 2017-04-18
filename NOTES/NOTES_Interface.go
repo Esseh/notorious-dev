@@ -109,3 +109,73 @@ func CanEditNote(note *Note,user *USERS.User) bool {
 	}	
 	return note.PublicallyEditable
 }
+
+func SubscribeAPI(ctx CONTEXT.Context) string { 
+	NoteID, _ := strconv.ParseInt(ctx.Req.FormValue("NoteID"),10,64)
+	sh := SubscriptionHeader{}
+	if retrievable.GetEntity(ctx,NoteID,&sh) != nil {
+		if retrievable.GetEntity(ctx,NoteID, &Note{}) != nil { return `{"success":false}` }
+	}
+	sub := Subscription{}
+	retrievable.GetEntity(ctx,int64(ctx.User.IntID),&sub)
+	for _,v := range sh.UserIDS {
+		if v == int64(ctx.User.IntID) { return `{"success":false}` }
+	}
+	for _,v := range sub.NoteIDS {
+		if v == NoteID { return `{"success":false}` }
+	}
+	sh.UserIDS = append(sh.UserIDS,int64(ctx.User.IntID)) 
+	sub.NoteIDS = append(sub.NoteIDS,NoteID)
+	retrievable.PlaceEntity(ctx,NoteID,&sh)
+	retrievable.PlaceEntity(ctx,int64(ctx.User.IntID),&sub)
+	return `{"success":true}`
+}
+
+func UnsubscribeAPI(ctx CONTEXT.Context) string { 
+	NoteID, _ := strconv.ParseInt(ctx.Req.FormValue("NoteID"),10,64)
+	sh := SubscriptionHeader{}
+	if retrievable.GetEntity(ctx,NoteID,&sh) != nil {
+		if retrievable.GetEntity(ctx,NoteID, &Note{}) != nil { return `{"success":false}` }
+	}
+	sub := Subscription{}
+	retrievable.GetEntity(ctx,int64(ctx.User.IntID),&sub)
+	found1 := false
+	found2 := false
+	NewHeader := []int64{}
+	NewSubscription := []int64{}
+	for _,v := range sh.UserIDS {
+		if v == int64(ctx.User.IntID) { 
+			found1 = true 
+		} else {
+			NewHeader = append(NewHeader,v)
+		}
+	}
+	for _,v := range sub.NoteIDS {
+		if v == NoteID { 
+			found2 = true 
+		} else {
+			NewSubscription = append(NewSubscription,v)		
+		}
+	}
+	if !found1 || !found2 { return `{"success":false}` }
+	sh.UserIDS = NewHeader
+	sub.NoteIDS = NewSubscription
+	
+	retrievable.PlaceEntity(ctx,NoteID,&sh)
+	retrievable.PlaceEntity(ctx,int64(ctx.User.IntID),&sub)
+	return `{"success":true}`
+}
+func GetSubscriptions(ctx CONTEXT.Context, UserID int64) []NoteOutput { 
+	sub := Subscription{}
+	retrievable.GetEntity(ctx,UserID,&sub)
+	output := []NoteOutput{}
+	for _,v := range sub.NoteIDS {
+		n := Note{}
+		c := Content{}
+		if retrievable.GetEntity(ctx,v,&n) == nil {
+			retrievable.GetEntity(ctx,v,&c)
+			output = append(output,NoteOutput{v,n,c})
+		}
+	}
+	return output
+}

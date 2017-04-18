@@ -11,6 +11,102 @@ import(
 	"strconv"
 )
 
+func TestSubscribeAPI(t*testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in TestSubscribeAPI")
+		panic(1)
+	}
+	
+	retrievable.PlaceEntity(ctx, int64(11), &Note{ContentID:int64(11),})
+	retrievable.PlaceEntity(ctx, int64(11), &Content{})
+	
+	req1 := httptest.NewRequest("GET", "/", nil)
+	values1 := url.Values{}; 
+	values1.Add("NoteID","11")
+	req1.Form = values1
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx; 
+	ctx1.Req = req1
+	ctx1.User = &USERS.User{IntID: retrievable.IntID(1),}
+	
+	// Success Case
+	if SubscribeAPI(ctx1) != `{"success":true}`{
+		fmt.Println("Fail SubscribeAPI 1")
+		t.Fail()
+	}
+	
+	// Fail Case, already subscribed
+	if SubscribeAPI(ctx1) != `{"success":false}`{
+		fmt.Println("Fail SubscribeAPI 2")
+		t.Fail()	
+	}
+}
+func TestUnsubscribeAPI(t*testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in TestUnsubscribeAPI")
+		panic(1)
+	}
+	
+	retrievable.PlaceEntity(ctx, int64(11), &Note{ContentID:int64(11),})
+	retrievable.PlaceEntity(ctx, int64(11), &Content{})
+	
+	req1 := httptest.NewRequest("GET", "/", nil)
+	values1 := url.Values{}; 
+	values1.Add("NoteID","11")
+	req1.Form = values1
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx; 
+	ctx1.Req = req1
+	ctx1.User = &USERS.User{IntID: retrievable.IntID(1),}
+	
+	SubscribeAPI(ctx1)
+	
+	// Success Case
+	if o := UnsubscribeAPI(ctx1); o != `{"success":true}`{
+		fmt.Println("Fail UnsubscribeAPI 1")
+		t.Fail()
+	}
+	// Fail Case, not subscribed
+	if UnsubscribeAPI(ctx1) != `{"success":false}`{
+		fmt.Println("Fail UnsubscribeAPI 2")
+		t.Fail()	
+	}
+}
+
+func TestGetSubscriptions(t*testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in TestGetSubscriptions")
+		panic(1)
+	}
+	
+	retrievable.PlaceEntity(ctx, int64(11), &Note{ContentID:int64(11),})
+	retrievable.PlaceEntity(ctx, int64(11), &Content{Title:"1",})
+	retrievable.PlaceEntity(ctx, int64(22), &Note{ContentID:int64(22),})
+	retrievable.PlaceEntity(ctx, int64(22), &Content{Title:"2",})
+	retrievable.PlaceEntity(ctx, int64(33), &Note{ContentID:int64(33),})
+	retrievable.PlaceEntity(ctx, int64(33), &Content{Title:"3",})
+	retrievable.PlaceEntity(ctx, int64(1), &Subscription{NoteIDS:[]int64{11,22,33},})
+	
+	ctx1 := CONTEXT.Context{}
+	ctx1.Context = ctx
+	out := GetSubscriptions(ctx1, 1)
+	if len(out) == 0 {
+		fmt.Println("GetSubscriptions not Implemented")
+	} else {
+		if out[0].Content.Title != "1" || out[1].Content.Title != "2" || out[2].Content.Title != "3" {
+			fmt.Println("FAIL GetSubscriptions")
+			t.Fail()
+		}	
+	}
+}
+
+
 func TestAPI_SaveCopy(t*testing.T){
 	ctx, done, err := aetest.NewContext()
 	defer done()
