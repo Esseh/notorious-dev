@@ -5,8 +5,25 @@ import (
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/USERS"
 	"github.com/Esseh/notorious-dev/CONTEXT"
+	"github.com/Esseh/notorious-dev/NOTIFICATION"
 	"google.golang.org/appengine/datastore"
 )
+
+func Notify(ctx CONTEXT.Context,NoteID int64){
+	n := Note{}
+	c := Content{}
+	sh := SubscriptionHeader{}
+	retrievable.GetEntity(ctx,NoteID,&n)
+	retrievable.GetEntity(ctx,n.ContentID,&c)
+	retrievable.GetEntity(ctx,NoteID,&sh)
+	for _,v := range sh.UserIDS {
+		n := NOTIFICATION.Notifications{}
+		retrievable.GetEntity(ctx,v,&n)
+		n.NotificationsPending += 1
+		n.Notifications = append([]string{ctx.User.Email + " updated " + c.Title},n.Notifications...)
+		retrievable.PlaceEntity(ctx,v,&n)
+	}
+}
 
 func API_SaveCopy(ctx CONTEXT.Context) string { 
 	OriginalNote    := Note{}

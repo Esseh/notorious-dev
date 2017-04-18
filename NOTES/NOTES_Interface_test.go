@@ -5,11 +5,61 @@ import(
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/USERS"
 	"github.com/Esseh/notorious-dev/CONTEXT"
+	"github.com/Esseh/notorious-dev/NOTIFICATION"
 	"google.golang.org/appengine/aetest"
 	"testing"
 	"fmt"
 	"strconv"
 )
+
+func TestNotify(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in GetPageNumbers")
+		panic(1)
+	}
+	// Stub Database
+	retrievable.PlaceEntity(ctx,int64(1),&USERS.User{})
+	retrievable.PlaceEntity(ctx,int64(2),&USERS.User{})
+	retrievable.PlaceEntity(ctx,int64(1),&Note{ContentID:1,})
+	retrievable.PlaceEntity(ctx,int64(1),&Content{Title:"testNote",})
+	retrievable.PlaceEntity(ctx,int64(1),&SubscriptionHeader{UserIDS:[]int64{1,2},})
+	
+	// Make Context
+	UserCtx := CONTEXT.Context{ User:&USERS.User{Email:"test1@test1"}, }
+	UserCtx.Context  = ctx
+
+	// Send PM Notifications
+	Notify(UserCtx,1)
+	Notify(UserCtx,1)
+
+	// Assert Success
+	n1 := NOTIFICATION.Notifications{}
+	retrievable.GetEntity(ctx,int64(1),&n1)
+	if n1.NotificationsPending != 2 {
+		t.Fail()
+		fmt.Println("FAIL Notify 1")
+	}
+	
+	if n1.Notifications[0] != "test1@test1 updated testNote" || n1.Notifications[1] != "test1@test1 updated testNote" {
+		t.Fail()
+		fmt.Println("FAIL Notify 2")
+	}	
+
+	// Assert Success
+	n2 := NOTIFICATION.Notifications{}
+	retrievable.GetEntity(ctx,int64(2),&n2)
+	if n2.NotificationsPending != 2 {
+		t.Fail()
+		fmt.Println("FAIL Notify 3")
+	}
+	
+	if n2.Notifications[0] != "test1@test1 updated testNote" || n2.Notifications[1] != "test1@test1 updated testNote" {
+		t.Fail()
+		fmt.Println("FAIL Notify 4")
+	}
+}
 
 func TestSubscribeAPI(t*testing.T){
 	ctx, done, err := aetest.NewContext()
