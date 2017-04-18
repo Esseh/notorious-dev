@@ -8,7 +8,41 @@ import(
 	"github.com/Esseh/notorious-dev/CONTEXT"
 	"github.com/Esseh/notorious-dev/AUTH"
 	"github.com/Esseh/notorious-dev/USERS"
+	"github.com/Esseh/notorious-dev/NOTIFICATION"
 )
+
+func TestNotify(t *testing.T){
+	ctx, done, err := aetest.NewContext()
+	defer done()
+	if err != nil {
+		fmt.Println("PANIC in GetPageNumbers")
+		panic(1)
+	}
+	// Stub Database
+	retrievable.PlaceEntity(ctx,int64(2),&USERS.User{Email:"test2@test2"})
+	retrievable.PlaceEntity(ctx,"test2@test2",&AUTH.EmailReference{int64(2)})
+	
+	// Make Context
+	UserCtx := CONTEXT.Context{ User:&USERS.User{Email:"test1@test1"}, }
+	UserCtx.Context  = ctx
+
+	// Send PM Notifications
+	Notify(UserCtx,"test2@test2")
+	Notify(UserCtx,"test2@test2")
+	
+	// Assert Success
+	n := NOTIFICATION.Notifications{}
+	retrievable.GetEntity(ctx,int64(2),&n)
+	if n.NotificationsPending != 2 {
+		t.Fail()
+		fmt.Println("FAIL Notify 1")
+	}
+	
+	if n.Notifications[0] != "test1@test1 sent you a private message" || n.Notifications[1] != "test1@test1 sent you a private message" {
+		t.Fail()
+		fmt.Println("FAIL Notify 2")
+	}
+}
 
 func TestGetPageNumbers(t *testing.T){
 	ctx, done, err := aetest.NewContext()

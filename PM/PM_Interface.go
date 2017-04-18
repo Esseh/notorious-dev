@@ -5,7 +5,19 @@ import (
 	"github.com/Esseh/retrievable"
 	"github.com/Esseh/notorious-dev/AUTH"
 	"github.com/Esseh/notorious-dev/CONTEXT"
+	"github.com/Esseh/notorious-dev/NOTIFICATION"
 )
+
+func Notify(ctx CONTEXT.Context,email string){
+	er := AUTH.EmailReference{}
+	err := retrievable.GetEntity(ctx,email,&er)
+	if err != nil { return }
+	n := NOTIFICATION.Notifications{}
+	retrievable.GetEntity(ctx,er.UserID,&n)
+	n.NotificationsPending += 1
+	n.Notifications = append([]string{ctx.User.Email + " sent you a private message"},n.Notifications...)
+	retrievable.PlaceEntity(ctx,er.UserID,&n)
+}
 
 func SendMessage(ctx CONTEXT.Context, email, title, content string){
 	// Ensure Each User Exists
