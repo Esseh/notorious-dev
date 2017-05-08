@@ -190,7 +190,7 @@ func GetSubscriptions(ctx CONTEXT.Context, UserID int64) []NoteOutput {
 		n := Note{}
 		c := Content{}
 		if retrievable.GetEntity(ctx,v,&n) == nil {
-			retrievable.GetEntity(ctx,v,&c)
+			retrievable.GetEntity(ctx,n.ContentID,&c)
 			output = append(output,NoteOutput{v,n,c})
 		}
 	}
